@@ -25,7 +25,32 @@
                     <img th:src="${article.imageUrl}" th:alt="${article.title}" loading="lazy"/>
                 </div>
 
-                <div class="article-body" th:utext="${article.content}">Nội dung bài viết</div>
+                <div class="article-body">
+                    <th:block th:each="block : ${contentBlocks}">
+
+                        <!-- Heading block -->
+                        <h2 th:if="${block.type == 'heading'}"
+                            class="article-block-heading"
+                            th:text="${block.heading}"></h2>
+
+                        <!-- Text block -->
+                        <div th:if="${block.type == 'text'}" class="article-block-text">
+                            <h3 th:if="${block.heading != null and !#strings.isEmpty(block.heading)}"
+                                th:text="${block.heading}"></h3>
+                            <p th:text="${block.content}"></p>
+                        </div>
+
+                        <!-- Image block -->
+                        <figure th:if="${block.type == 'image'}" class="article-block-image">
+                            <h3 th:if="${block.heading != null and !#strings.isEmpty(block.heading)}"
+                                th:text="${block.heading}"></h3>
+                            <img th:src="${block.imageUrl}" th:alt="${block.caption}"/>
+                            <figcaption th:if="${block.caption != null and !#strings.isEmpty(block.caption)}"
+                                        th:text="${block.caption}"></figcaption>
+                        </figure>
+
+                    </th:block>
+                </div>
 
                 <!-- Bài liên quan -->
                 <section class="related-articles" th:if="${not #lists.isEmpty(relatedArticles)}">

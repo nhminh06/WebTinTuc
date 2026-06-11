@@ -4,50 +4,70 @@
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main class="main-content">
-<div class="container">
-    <div class="admin-header">
-        <h2>⚙ Quản trị</h2>
-        <a href="/admin/articles/new" class="btn-primary">+ Viết bài mới</a>
-    </div>
-    <div class="admin-stats">
-        <div class="stat-card">
-            <span class="stat-number" th:text="${totalArticles}">0</span>
-            <span class="stat-label">Tổng bài viết</span>
+    <div class="container">
+
+        <div class="admin-header">
+            <h2>⚙ Quản trị</h2>
+            <a href="/admin/articles/new" class="btn-primary">+ Viết bài mới</a>
         </div>
-    </div>
-    <div class="flash-msg success" th:if="${success}" th:text="${success}"></div>
-    <table class="admin-table">
-        <thead>
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <span class="stat-number" th:text="${totalArticles}">0</span>
+                <span class="stat-label">Tổng bài viết</span>
+            </div>
+        </div>
+
+        <div class="flash-msg success" th:if="${success}" th:text="${success}"></div>
+
+        <table class="admin-table">
+            <thead>
             <tr>
-                <th>ID</th><th>Tiêu đề</th><th>Danh mục</th><th>Tác giả</th><th>Trạng thái</th><th>Lượt xem</th><th>Hành động</th>
+                <th style="width:50px">ID</th>
+                <th>Tiêu đề</th>
+                <th style="width:110px">Danh mục</th>
+                <th style="width:130px">Tác giả</th>
+                <th style="width:100px">Trạng thái</th>
+                <th style="width:90px">Lượt xem</th>
+                <th style="width:200px">Hành động</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             <tr th:each="article : ${articles}">
                 <td th:text="${article.id}">1</td>
-                <td><span th:text="${article.title}">Tiêu đề</span></td>
+                <td th:text="${#strings.abbreviate(article.title, 50)}">Tiêu đề</td>
                 <td th:text="${article.category}">Danh mục</td>
                 <td th:text="${article.author}">Tác giả</td>
                 <td>
                     <a th:href="@{/admin/articles/toggle/{id}(id=${article.id})}"
                        th:class="${article.published} ? 'badge published' : 'badge draft'"
-                       th:text="${article.published} ? 'Đã đăng' : 'Nháp'">Trạng thái</a>
+                       th:text="${article.published} ? 'Đã đăng' : 'Nháp'">
+                    </a>
                 </td>
                 <td th:text="${article.viewCount}">0</td>
-                <td class="action-btns">
-                    <a th:href="@{/article/{id}(id=${article.id})}" class="btn-sm">Xem</a>
-                    <a th:href="@{/admin/articles/edit/{id}(id=${article.id})}" class="btn-sm edit">Sửa</a>
-                    <a th:href="@{/admin/articles/delete/{id}(id=${article.id})}"
-                       class="btn-sm danger"
-                       onclick="return confirm('Xóa bài viết này?')">Xóa</a>
+                <td>
+                    <div style="display:flex; gap:5px; flex-wrap:nowrap">
+                        <a th:href="@{/article/{id}(id=${article.id})}"
+                           class="btn-sm" target="_blank"
+                           style="white-space:nowrap">👁 Xem</a>
+                        <a th:href="@{/admin/articles/edit/{id}(id=${article.id})}"
+                           class="btn-sm edit"
+                           style="white-space:nowrap">✏ Sửa</a>
+                        <a th:href="@{/admin/articles/delete/{id}(id=${article.id})}"
+                           class="btn-sm danger"
+                           style="white-space:nowrap"
+                           onclick="return confirm('Xóa bài viết này?')">🗑 Xóa</a>
+                    </div>
                 </td>
             </tr>
-        </tbody>
-    </table>
-    <div style="margin-top:1rem">
-        <a href="/admin/articles" class="btn-secondary">Xem tất cả bài viết →</a>
+            </tbody>
+        </table>
+
+        <div style="margin-top:1rem">
+            <a href="/admin/articles" class="btn-secondary">Xem tất cả bài viết →</a>
+        </div>
+
     </div>
-</div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>

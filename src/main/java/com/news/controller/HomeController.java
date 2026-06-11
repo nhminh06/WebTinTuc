@@ -36,10 +36,31 @@ public class HomeController {
         Article article = optArticle.get();
         articleService.incrementView(id);
 
+        // Parse JSON content thành blocks
+        List<Object> contentBlocks = new java.util.ArrayList<>();
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper =
+                    new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode arr =
+                    mapper.readTree(article.getContent());
+            if (arr.isArray()) {
+                arr.forEach(node ->
+                        contentBlocks.add(mapper.convertValue(node, Object.class)));
+            }
+        } catch (Exception e) {
+            // content cũ không phải JSON
+            contentBlocks.add(java.util.Map.of(
+                    "type", "text",
+                    "heading", "",
+                    "content", article.getContent() != null ? article.getContent() : ""
+            ));
+        }
+
         List<Article> related = articleService.getRelatedArticles(article.getCategory(), id);
         List<Article> popular = articleService.getTopViewedArticles();
 
         model.addAttribute("article", article);
+        model.addAttribute("contentBlocks", contentBlocks);
         model.addAttribute("relatedArticles", related);
         model.addAttribute("popularArticles", popular);
         return "article";
