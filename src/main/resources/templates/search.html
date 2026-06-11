@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tìm kiếm')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="main-content">
+    <div class="container">
+        <div class="page-header">
+            <h2>Tìm kiếm</h2>
+            <form action="/search" method="get" class="search-form-large">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập từ khóa..."/>
+                <button type="submit">Tìm kiếm</button>
+            </form>
+        </div>
+        <div th:if="${keyword != null}">
+            <p class="search-result-info">
+                Kết quả tìm kiếm cho: <strong th:text="${keyword}">keyword</strong>
+                <span th:if="${articles != null}"> — <span th:text="${articles.totalElements}">0</span> bài viết</span>
+            </p>
+            <div class="article-grid three-col" th:if="${articles != null and articles.totalElements > 0}">
+                <a th:each="article : ${articles}"
+                   th:href="@{/article/{id}(id=${article.id})}"
+                   class="article-card">
+                    <div class="article-card-img">
+                        <img th:src="${article.imageUrl}" th:alt="${article.title}" loading="lazy"/>
+                        <span class="category-badge" th:text="${article.category}">Danh mục</span>
+                    </div>
+                    <div class="article-card-body">
+                        <h4 th:text="${article.title}">Tiêu đề</h4>
+                        <p th:text="${article.summary}">Tóm tắt</p>
+                        <div class="article-meta">
+                            <span th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy')}">Ngày</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <p th:if="${articles == null or articles.totalElements == 0}" class="empty-msg">
+                Không tìm thấy bài viết nào phù hợp.
+            </p>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

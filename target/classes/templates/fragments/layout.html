@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title} + ' - VietNews'">VietNews</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<header th:fragment="header" class="site-header">
+    <div class="header-top">
+        <div class="container">
+            <div class="header-top-inner">
+                <span class="date-display" id="currentDate"></span>
+                <div class="header-search">
+                    <form action="/search" method="get">
+                        <input type="text" name="keyword" placeholder="Tìm kiếm..." />
+                        <button type="submit">🔍</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="header-main">
+        <div class="container">
+            <a href="/" class="logo">
+                <span class="logo-viet">VIET</span><span class="logo-news">NEWS</span>
+            </a>
+        </div>
+    </div>
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="/" th:classappend="${currentPage == 'home'} ? 'active'">Trang chủ</a></li>
+                <li><a href="/category/Công nghệ" th:classappend="${currentPage == 'Công nghệ'} ? 'active'">Công nghệ</a></li>
+                <li><a href="/category/Thể thao" th:classappend="${currentPage == 'Thể thao'} ? 'active'">Thể thao</a></li>
+                <li><a href="/category/Kinh tế" th:classappend="${currentPage == 'Kinh tế'} ? 'active'">Kinh tế</a></li>
+                <li><a href="/category/Giải trí" th:classappend="${currentPage == 'Giải trí'} ? 'active'">Giải trí</a></li>
+                <li><a href="/category/Xã hội" th:classappend="${currentPage == 'Xã hội'} ? 'active'">Xã hội</a></li>
+                <li class="nav-admin"><a href="/admin">⚙ Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="/" class="logo">
+                    <span class="logo-viet">VIET</span><span class="logo-news">NEWS</span>
+                </a>
+                <p>Kênh tin tức nhanh, chính xác và đáng tin cậy.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Chuyên mục</h4>
+                <ul>
+                    <li><a href="/category/Công nghệ">Công nghệ</a></li>
+                    <li><a href="/category/Thể thao">Thể thao</a></li>
+                    <li><a href="/category/Kinh tế">Kinh tế</a></li>
+                    <li><a href="/category/Giải trí">Giải trí</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 VietNews. Bản quyền được bảo lưu.</p>
+        </div>
+    </div>
+</footer>
+
+<script th:fragment="scripts">
+    const d = new Date();
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const el = document.getElementById('currentDate');
+    if (el) el.textContent = d.toLocaleDateString('vi-VN', opts);
+</script>
+</body>
+</html>

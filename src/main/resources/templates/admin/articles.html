@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Quản lý bài viết')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="main-content">
+<div class="container">
+    <div class="admin-header">
+        <h2>Quản lý bài viết</h2>
+        <a href="/admin/articles/new" class="btn-primary">+ Viết bài mới</a>
+    </div>
+    <div class="flash-msg success" th:if="${success}" th:text="${success}"></div>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>Tiêu đề</th><th>Danh mục</th><th>Tác giả</th><th>Trạng thái</th><th>Ngày tạo</th><th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="article : ${articles}">
+                <td th:text="${article.id}">1</td>
+                <td th:text="${#strings.abbreviate(article.title, 60)}">Tiêu đề</td>
+                <td th:text="${article.category}">Danh mục</td>
+                <td th:text="${article.author}">Tác giả</td>
+                <td>
+                    <a th:href="@{/admin/articles/toggle/{id}(id=${article.id})}"
+                       th:class="${article.published} ? 'badge published' : 'badge draft'"
+                       th:text="${article.published} ? 'Đã đăng' : 'Nháp'">Trạng thái</a>
+                </td>
+                <td th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy')}">Ngày</td>
+                <td class="action-btns">
+                    <a th:href="@{/admin/articles/edit/{id}(id=${article.id})}" class="btn-sm edit">Sửa</a>
+                    <a th:href="@{/admin/articles/delete/{id}(id=${article.id})}"
+                       class="btn-sm danger"
+                       onclick="return confirm('Xóa bài viết này?')">Xóa</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- Phân trang -->
+    <div class="pagination" th:if="${articles.totalPages > 1}">
+        <a th:if="${articles.hasPreviousPage()}"
+           th:href="@{/admin/articles(page=${articles.number - 1})}" class="btn-page">← Trước</a>
+        <span th:each="i : ${#numbers.sequence(0, articles.totalPages - 1)}">
+            <a th:href="@{/admin/articles(page=${i})}"
+               th:text="${i + 1}"
+               th:classappend="${i == articles.number} ? 'active'"
+               class="btn-page">1</a>
+        </span>
+        <a th:if="${articles.hasNextPage()}"
+           th:href="@{/admin/articles(page=${articles.number + 1})}" class="btn-page">Sau →</a>
+    </div>
+</div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

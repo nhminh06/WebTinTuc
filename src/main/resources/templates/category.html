@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${category})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="main-content">
+    <div class="container">
+        <div class="page-header">
+            <h2 th:text="'Chuyên mục: ' + ${category}">Chuyên mục</h2>
+        </div>
+        <div class="content-grid no-sidebar">
+            <div class="article-grid three-col" th:if="${articles != null and articles.totalElements > 0}">
+                <a th:each="article : ${articles}"
+                   th:href="@{/article/{id}(id=${article.id})}"
+                   class="article-card">
+                    <div class="article-card-img">
+                        <img th:src="${article.imageUrl}" th:alt="${article.title}" loading="lazy"/>
+                        <span class="category-badge" th:text="${article.category}">Danh mục</span>
+                    </div>
+                    <div class="article-card-body">
+                        <h4 th:text="${article.title}">Tiêu đề</h4>
+                        <p th:text="${article.summary}">Tóm tắt</p>
+                        <div class="article-meta">
+                            <span th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy')}">Ngày</span>
+                            <span>👁 <span th:text="${article.viewCount}">0</span></span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <p th:if="${articles == null or articles.totalElements == 0}" class="empty-msg">
+                Không có bài viết nào trong chuyên mục này.
+            </p>
+            <!-- Phân trang -->
+            <div class="pagination" th:if="${articles != null and articles.totalPages > 1}">
+                <a th:if="${articles.hasPreviousPage()}"
+                   th:href="@{/category/{cat}(cat=${category}, page=${articles.number - 1})}"
+                   class="btn-page">← Trước</a>
+                <span th:each="i : ${#numbers.sequence(0, articles.totalPages - 1)}">
+                    <a th:href="@{/category/{cat}(cat=${category}, page=${i})}"
+                       th:text="${i + 1}"
+                       th:classappend="${i == articles.number} ? 'active'"
+                       class="btn-page">1</a>
+                </span>
+                <a th:if="${articles.hasNextPage()}"
+                   th:href="@{/category/{cat}(cat=${category}, page=${articles.number + 1})}"
+                   class="btn-page">Sau →</a>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

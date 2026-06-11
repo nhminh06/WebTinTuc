@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${article.title})}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="main-content">
+    <div class="container">
+        <div class="content-grid">
+
+            <article class="article-detail">
+                <div class="article-header">
+                    <span class="category-badge lg" th:text="${article.category}">Danh mục</span>
+                    <h1 th:text="${article.title}">Tiêu đề bài viết</h1>
+                    <p class="article-summary" th:text="${article.summary}">Tóm tắt</p>
+                    <div class="article-meta-bar">
+                        <span>✍ <span th:text="${article.author}">Tác giả</span></span>
+                        <span>📅 <span th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</span></span>
+                        <span>👁 <span th:text="${article.viewCount}">0</span> lượt xem</span>
+                    </div>
+                </div>
+
+                <div class="article-thumbnail">
+                    <img th:src="${article.imageUrl}" th:alt="${article.title}" loading="lazy"/>
+                </div>
+
+                <div class="article-body" th:utext="${article.content}">Nội dung bài viết</div>
+
+                <!-- Bài liên quan -->
+                <section class="related-articles" th:if="${not #lists.isEmpty(relatedArticles)}">
+                    <h3 class="section-title">Bài viết liên quan</h3>
+                    <div class="article-grid sm">
+                        <a th:each="rel : ${relatedArticles}"
+                           th:href="@{/article/{id}(id=${rel.id})}"
+                           class="article-card">
+                            <div class="article-card-img">
+                                <img th:src="${rel.imageUrl}" th:alt="${rel.title}" loading="lazy"/>
+                            </div>
+                            <div class="article-card-body">
+                                <h4 th:text="${rel.title}">Tiêu đề</h4>
+                                <span class="meta-date" th:text="${#temporals.format(rel.createdAt, 'dd/MM/yyyy')}">Ngày</span>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+            </article>
+
+            <aside class="sidebar">
+                <div class="sidebar-widget">
+                    <h3 class="widget-title">Đọc nhiều nhất</h3>
+                    <ol class="popular-list">
+                        <li th:each="pop : ${popularArticles}">
+                            <a th:href="@{/article/{id}(id=${pop.id})}" th:text="${pop.title}">Tiêu đề</a>
+                            <span class="view-count">👁 <span th:text="${pop.viewCount}">0</span></span>
+                        </li>
+                    </ol>
+                </div>
+                <div class="sidebar-widget">
+                    <h3 class="widget-title">Chuyên mục</h3>
+                    <div class="category-tags">
+                        <a href="/category/Công nghệ" class="tag">💻 Công nghệ</a>
+                        <a href="/category/Thể thao" class="tag">⚽ Thể thao</a>
+                        <a href="/category/Kinh tế" class="tag">📈 Kinh tế</a>
+                        <a href="/category/Giải trí" class="tag">🎬 Giải trí</a>
+                        <a href="/category/Xã hội" class="tag">🏙 Xã hội</a>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
