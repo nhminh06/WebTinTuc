@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/upload").authenticated()
                         .requestMatchers("/", "/article/**", "/category/**", "/search",
                                 "/login", "/register").permitAll()
+                        .requestMatchers("/comment/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

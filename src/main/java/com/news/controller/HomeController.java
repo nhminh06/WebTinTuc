@@ -1,14 +1,19 @@
 package com.news.controller;
 
 import com.news.model.Article;
+import com.news.model.Comment;
+import com.news.repository.CommentLikeRepository;
 import com.news.service.ArticleService;
+import com.news.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -16,6 +21,10 @@ public class HomeController {
 
     @Autowired
     private ArticleService articleService;
+    @Autowired
+    private CommentLikeRepository commentLikeRepository;
+    @Autowired
+    private CommentService commentService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -50,8 +59,12 @@ public class HomeController {
             articleService.incrementView(id);
         }
 
+        String currentUsername = authentication != null && authentication.isAuthenticated()
+                ? authentication.getName() : null;
+
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("currentUsername", currentUsername);
 
         // Parse JSON content thành blocks
         List<Object> contentBlocks = new java.util.ArrayList<>();
@@ -79,13 +92,30 @@ public class HomeController {
         model.addAttribute("contentBlocks", contentBlocks);
         model.addAttribute("relatedArticles", related);
         model.addAttribute("popularArticles", popular);
+
+        // Bình luận
+        List<Comment> comments = commentService.getCommentsByArticle(id);
+
+        Map<Long, Long> likeCounts = new HashMap<>();
+        Map<Long, Boolean> likedByMe = new HashMap<>();
+        for (Comment c : comments) {
+            likeCounts.put(c.getId(), commentLikeRepository.countByCommentId(c.getId()));
+            likedByMe.put(c.getId(), currentUsername != null &&
+                    commentLikeRepository.existsByCommentIdAndUsername(c.getId(), currentUsername));
+        }
+
+        model.addAttribute("comments", comments);
+        model.addAttribute("newComment", new Comment());
+        model.addAttribute("likeCounts", likeCounts);
+        model.addAttribute("likedByMe", likedByMe);
+
         return "article";
     }
 
     @GetMapping("/category/{category}")
     public String byCategory(@PathVariable String category,
-                              @RequestParam(defaultValue = "0") int page,
-                              Model model) {
+                             @RequestParam(defaultValue = "0") int page,
+                             Model model) {
         Page<Article> articles = articleService.getArticlesByCategory(category, page, 9);
         model.addAttribute("articles", articles);
         model.addAttribute("category", category);

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head(${article.title})}"></head>
 <body>
 
@@ -22,7 +23,7 @@
                         <span><i class="fa-solid fa-pen-nib"></i> <span th:text="${article.author}">Tác giả</span></span>
                         <span><i class="fa-regular fa-calendar"></i> <span th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</span></span>
                         <span><i class="fa-regular fa-eye"></i> <span th:text="${article.viewCount}">0</span> lượt xem</span>
-                    </div>  
+                    </div>
                 </div>
 
                 <div class="article-thumbnail">
@@ -71,6 +72,79 @@
                                 <span class="meta-date" th:text="${#temporals.format(rel.createdAt, 'dd/MM/yyyy')}">Ngày</span>
                             </div>
                         </a>
+                    </div>
+                </section>
+                <!-- Bình luận -->
+                <section class="comments-section" id="comments">
+                    <h3 class="section-title">
+                        Bình luận (<span th:text="${#lists.size(comments)}">0</span>)
+                    </h3>
+
+                    <div class="flash-msg error" th:if="${commentError}">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span th:text="${commentError}"></span>
+                    </div>
+
+                    <!-- Form đăng bình luận -->
+                    <div sec:authorize="isAuthenticated()" class="comment-form-wrap">
+                        <form th:action="@{/comment/add/{id}(id=${article.id})}" method="post"
+                              th:object="${newComment}" class="comment-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <textarea th:field="*{content}" rows="3" maxlength="1000"
+                                      placeholder="Viết bình luận của bạn..." required></textarea>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-paper-plane"></i> Gửi bình luận
+                            </button>
+                        </form>
+                    </div>
+
+                    <div sec:authorize="!isAuthenticated()" class="comment-login-prompt">
+                        <a href="/login">Đăng nhập</a> để bình luận về bài viết này.
+                    </div>
+
+                    <!-- Danh sách bình luận -->
+                    <div class="comment-list">
+                        <div th:each="cmt : ${comments}" class="comment-item">
+                            <div class="comment-header">
+                <span class="comment-author">
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span th:text="${cmt.username}"></span>
+                </span>
+                                <span class="comment-date"
+                                      th:text="${#temporals.format(cmt.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                            </div>
+                            <p class="comment-content" th:text="${cmt.content}"></p>
+                            <div class="comment-actions">
+                                <!-- Thích -->
+                                <form th:action="@{/comment/like/{id}(id=${cmt.id})}" method="post" style="display:inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="comment-like"
+                                            th:classappend="${likedByMe[cmt.id]} ? ' liked' : ''">
+                                        <i class="fa-solid fa-heart"></i>
+                                        <span th:text="${likeCounts[cmt.id]}">0</span>
+                                    </button>
+                                </form>
+
+                                <!-- Báo cáo -->
+                                <a th:if="${currentUsername != null and currentUsername != cmt.username}"
+                                   th:href="@{/comment/report/{id}(id=${cmt.id})}"
+                                   class="comment-report"
+                                   onclick="return confirm('Báo cáo bình luận này?')">
+                                    <i class="fa-solid fa-flag"></i> Báo cáo
+                                </a>
+
+                                <!-- Xóa -->
+                                <a th:if="${isAdmin or (currentUsername != null and currentUsername == cmt.username)}"
+                                   th:href="@{/comment/delete/{id}(id=${cmt.id})}"
+                                   class="comment-delete"
+                                   onclick="return confirm('Xóa bình luận này?')">
+                                    <i class="fa-solid fa-trash"></i> Xóa
+                                </a>
+                            </div>
+                        </div>
+                        <p th:if="${#lists.isEmpty(comments)}" class="no-comments">
+                            Chưa có bình luận nào. Hãy là người đầu tiên!
+                        </p>
                     </div>
                 </section>
             </article>
