@@ -5,6 +5,7 @@ import com.news.repository.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import com.news.model.ArticleStatus;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -69,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
             a.setCategory(data[i][2]);
             a.setAuthor(authors[i % authors.length]);
             a.setImageUrl(images[i]);
-            a.setPublished(true);
+            a.setStatus(ArticleStatus.PUBLISHED);
             a.setViewCount((int)(Math.random() * 1000 + 50));
             articleRepository.save(a);
         }

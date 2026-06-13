@@ -1,6 +1,7 @@
 package com.news.controller;
 
 import com.news.model.Article;
+import com.news.model.ArticleStatus;
 import com.news.service.ArticleService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ public class AdminController {
         Page<Article> articles = articleService.getAllArticles(0, 10);
         model.addAttribute("articles", articles);
         model.addAttribute("totalArticles", articles.getTotalElements());
+        model.addAttribute("adminPage", "dashboard");
         return "admin/dashboard";
     }
 
@@ -32,19 +34,22 @@ public class AdminController {
     public String listArticles(@RequestParam(defaultValue = "0") int page, Model model) {
         Page<Article> articles = articleService.getAllArticles(page, 10);
         model.addAttribute("articles", articles);
+        model.addAttribute("adminPage", "articles");
         return "admin/articles";
     }
 
     @GetMapping("/articles/new")
     public String newArticleForm(Model model) {
         model.addAttribute("article", new Article());
+        model.addAttribute("statuses", ArticleStatus.values());
+        model.addAttribute("adminPage", "new-article");
         return "admin/article-form";
     }
 
     @PostMapping("/articles/save")
     public String saveArticle(@Valid @ModelAttribute Article article,
-                               BindingResult result,
-                               RedirectAttributes redirectAttributes) {
+                              BindingResult result,
+                              RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "admin/article-form";
         }
@@ -58,6 +63,8 @@ public class AdminController {
         Optional<Article> article = articleService.getArticleById(id);
         if (article.isEmpty()) return "redirect:/admin/articles";
         model.addAttribute("article", article.get());
+        model.addAttribute("statuses", ArticleStatus.values());
+        model.addAttribute("adminPage", "articles");
         return "admin/article-form";
     }
 
@@ -69,9 +76,27 @@ public class AdminController {
     }
 
     @GetMapping("/articles/toggle/{id}")
-    public String togglePublish(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        articleService.togglePublish(id);
+    public String toggleStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        articleService.toggleStatus(id);
         redirectAttributes.addFlashAttribute("success", "Đã cập nhật trạng thái!");
         return "redirect:/admin/articles";
+    }
+
+    @GetMapping("/users")
+    public String listUsers(Model model) {
+        model.addAttribute("adminPage", "users");
+        return "admin/users";
+    }
+
+    @GetMapping("/categories")
+    public String listCategories(Model model) {
+        model.addAttribute("adminPage", "categories");
+        return "admin/categories";
+    }
+
+    @GetMapping("/reports")
+    public String listReports(Model model) {
+        model.addAttribute("adminPage", "reports");
+        return "admin/reports";
     }
 }

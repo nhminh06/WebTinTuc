@@ -2,74 +2,128 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Admin')}"></head>
 <body>
-<header th:replace="~{fragments/layout :: header}"></header>
-<main class="main-content">
-    <div class="container">
 
-        <div class="admin-header">
-            <h2>⚙ Quản trị</h2>
-            <a href="/admin/articles/new" class="btn-primary">+ Viết bài mới</a>
-        </div>
 
-        <div class="admin-stats">
-            <div class="stat-card">
-                <span class="stat-number" th:text="${totalArticles}">0</span>
-                <span class="stat-label">Tổng bài viết</span>
-            </div>
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <div th:replace="~{fragments/layout :: admin-sidebar}"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+
+        <div class="admin-topbar">
+            <h2><i class="fa-solid fa-gauge"></i> Tổng quan</h2>
         </div>
 
         <div class="flash-msg success" th:if="${success}" th:text="${success}"></div>
 
-        <table class="admin-table">
-            <thead>
-            <tr>
-                <th style="width:50px">ID</th>
-                <th>Tiêu đề</th>
-                <th style="width:110px">Danh mục</th>
-                <th style="width:130px">Tác giả</th>
-                <th style="width:100px">Trạng thái</th>
-                <th style="width:90px">Lượt xem</th>
-                <th style="width:200px">Hành động</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="article : ${articles}">
-                <td th:text="${article.id}">1</td>
-                <td th:text="${#strings.abbreviate(article.title, 50)}">Tiêu đề</td>
-                <td th:text="${article.category}">Danh mục</td>
-                <td th:text="${article.author}">Tác giả</td>
-                <td>
-                    <a th:href="@{/admin/articles/toggle/{id}(id=${article.id})}"
-                       th:class="${article.published} ? 'badge published' : 'badge draft'"
-                       th:text="${article.published} ? 'Đã đăng' : 'Nháp'">
-                    </a>
-                </td>
-                <td th:text="${article.viewCount}">0</td>
-                <td>
-                    <div style="display:flex; gap:5px; flex-wrap:nowrap">
-                        <a th:href="@{/article/{id}(id=${article.id})}"
-                           class="btn-sm" target="_blank"
-                           style="white-space:nowrap">👁 Xem</a>
-                        <a th:href="@{/admin/articles/edit/{id}(id=${article.id})}"
-                           class="btn-sm edit"
-                           style="white-space:nowrap">✏ Sửa</a>
-                        <a th:href="@{/admin/articles/delete/{id}(id=${article.id})}"
-                           class="btn-sm danger"
-                           style="white-space:nowrap"
-                           onclick="return confirm('Xóa bài viết này?')">🗑 Xóa</a>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <div style="margin-top:1rem">
-            <a href="/admin/articles" class="btn-secondary">Xem tất cả bài viết →</a>
+        <!-- STATS -->
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fff0f0">
+                    <i class="fa-solid fa-newspaper" style="color:var(--red)"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${totalArticles}">0</span>
+                    <span class="stat-label">Tổng bài viết</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f0f7ff">
+                    <i class="fa-solid fa-users" style="color:#1565c0"></i>
+                </div>
+                <div>
+                    <span class="stat-number">—</span>
+                    <span class="stat-label">Người dùng</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f0fff4">
+                    <i class="fa-solid fa-eye" style="color:#2e7d32"></i>
+                </div>
+                <div>
+                    <span class="stat-number">—</span>
+                    <span class="stat-label">Lượt xem</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fffbf0">
+                    <i class="fa-solid fa-flag" style="color:#f57f17"></i>
+                </div>
+                <div>
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">Báo cáo</span>
+                </div>
+            </div>
         </div>
 
-    </div>
-</main>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+        <!-- TABLE -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <span><i class="fa-solid fa-clock-rotate-left"></i> Bài viết gần đây</span>
+                <a href="/admin/articles/new" class="btn-primary">
+                    <i class="fa-solid fa-plus"></i> Viết bài mới
+                </a>
+            </div>
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th style="width:50px">ID</th>
+                    <th style="width:250px">Tiêu đề</th>  <!-- thêm width cố định -->
+                    <th style="width:110px">Danh mục</th>
+                    <th style="width:120px">Tác giả</th>
+                    <th style="width:100px">Trạng thái</th>
+                    <th style="width:110px">Ngày tạo</th>
+                    <th style="width:130px">Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="article : ${articles}">
+                    <td th:text="${article.id}">1</td>
+                    <td th:text="${#strings.abbreviate(article.title, 50)}">Tiêu đề</td>
+                    <td th:text="${article.category}">Danh mục</td>
+                    <td th:text="${article.author}">Tác giả</td>
+                    <td>
+                        <a th:href="@{/admin/articles/toggle/{id}(id=${article.id})}"
+                           th:class="${article.status.name() == 'PUBLISHED'} ? 'badge published' :
+                 (${article.status.name() == 'HIDDEN'} ? 'badge hidden' : 'badge draft')"
+                           th:text="${article.status.name() == 'PUBLISHED'} ? 'Đã đăng' :
+                (${article.status.name() == 'HIDDEN'} ? 'Ẩn' : 'Nháp')">
+                        </a>
+                    </td>
+                    <td th:text="${article.viewCount}">0</td>
+                    <td>
+                        <div class="action-btns">
+                            <a th:href="@{/article/{id}(id=${article.id})}"
+                               class="btn-sm" target="_blank">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a th:href="@{/admin/articles/edit/{id}(id=${article.id})}"
+                               class="btn-sm edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a th:href="@{/admin/articles/delete/{id}(id=${article.id})}"
+                               class="btn-sm danger"
+                               onclick="return confirm('Xóa bài viết này?')">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div style="padding:1rem">
+                <a href="/admin/articles" class="btn-secondary">
+                    Xem tất cả <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

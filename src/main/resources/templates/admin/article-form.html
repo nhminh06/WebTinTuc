@@ -2,13 +2,19 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Viết bài')}"></head>
 <body>
-<header th:replace="~{fragments/layout :: header}"></header>
 
-<main class="main-content">
-    <div class="container">
-        <div class="admin-header">
-            <h2 th:text="${article.id != null} ? 'Chỉnh sửa bài viết' : 'Viết bài mới'">Viết bài</h2>
-            <a href="/admin" class="btn-secondary">← Quay lại</a>
+<div class="admin-layout">
+    <div th:replace="~{fragments/layout :: admin-sidebar}"></div>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h2>
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span th:text="${article.id != null} ? 'Chỉnh sửa bài viết' : 'Viết bài mới'">Viết bài</span>
+            </h2>
+            <a href="/admin/articles" class="btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại
+            </a>
         </div>
 
         <form th:action="@{/admin/articles/save}" th:object="${article}"
@@ -17,10 +23,8 @@
             <input type="hidden" th:field="*{viewCount}"/>
             <input type="hidden" th:field="*{createdAt}"/>
 
-            <!-- THÔNG TIN CHUNG -->
             <div class="form-section">
-                <div class="form-section-title">📋 Thông tin chung</div>
-
+                <div class="form-section-title">Thông tin chung</div>
                 <div class="form-group">
                     <label>Tiêu đề chính *</label>
                     <input type="text" th:field="*{title}"
@@ -28,7 +32,6 @@
                     <span class="error" th:if="${#fields.hasErrors('title')}"
                           th:errors="*{title}"></span>
                 </div>
-
                 <div class="form-group">
                     <label>Mô tả ngắn *</label>
                     <textarea th:field="*{summary}" rows="3"
@@ -37,7 +40,6 @@
                     <span class="error" th:if="${#fields.hasErrors('summary')}"
                           th:errors="*{summary}"></span>
                 </div>
-
                 <div class="form-row">
                     <div class="form-group">
                         <label>Danh mục</label>
@@ -56,14 +58,13 @@
                                placeholder="Tên tác giả" class="form-control"/>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Ảnh bìa</label>
                     <div class="upload-area" id="coverArea">
                         <input type="file" id="coverFile" accept="image/*" style="display:none"/>
                         <input type="hidden" th:field="*{imageUrl}" id="coverUrl"/>
                         <div id="coverPlaceholder" class="upload-placeholder">
-                            Nhấn để chọn ảnh bìa
+                            <span>Nhấn để chọn ảnh bìa</span>
                         </div>
                         <div id="coverPreview" class="upload-preview" style="display:none">
                             <img id="coverImg" src="" alt="Ảnh bìa"/>
@@ -74,19 +75,22 @@
                 </div>
             </div>
 
-            <!-- NỘI DUNG -->
             <div class="form-section">
-                <div class="form-section-title">📝 Nội dung bài viết</div>
+                <div class="form-section-title">Nội dung bài viết</div>
                 <input type="hidden" th:field="*{content}" id="contentJson"/>
                 <span class="error" th:if="${#fields.hasErrors('content')}"
                       th:errors="*{content}"></span>
-
                 <div id="blocksContainer"></div>
-
                 <div class="block-add-buttons">
-                    <button type="button" class="btn-add-block" onclick="addBlock('heading')">+ Tiêu đề mục</button>
-                    <button type="button" class="btn-add-block" onclick="addBlock('text')">+ Nội dung văn bản</button>
-                    <button type="button" class="btn-add-block" onclick="addBlock('image')">+ Hình ảnh</button>
+                    <button type="button" class="btn-add-block" onclick="addBlock('heading')">
+                        <i class="fa-solid fa-heading"></i> Tiêu đề mục
+                    </button>
+                    <button type="button" class="btn-add-block" onclick="addBlock('text')">
+                        <i class="fa-solid fa-align-left"></i> Nội dung văn bản
+                    </button>
+                    <button type="button" class="btn-add-block" onclick="addBlock('image')">
+                        <i class="fa-solid fa-image"></i> Hình ảnh
+                    </button>
                 </div>
             </div>
 
@@ -100,125 +104,113 @@
 
             <div class="form-actions">
                 <button type="button" class="btn-primary" onclick="submitForm()">
-                    <span th:text="${article.id != null} ? '💾 Cập nhật' : '🚀 Đăng bài'">Lưu</span>
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span th:text="${article.id != null} ? 'Cập nhật' : 'Đăng bài'">Lưu</span>
                 </button>
-                <a href="/admin" class="btn-secondary">Hủy</a>
+                <a href="/admin/articles" class="btn-secondary">Hủy</a>
             </div>
         </form>
-    </div>
-</main>
+    </main>
+</div>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 
 <script>
-    /* ── state ── */
     let blocks = [];
 
-    /* ── init ── */
     window.addEventListener('DOMContentLoaded', () => {
-      // Load ảnh bìa nếu đang edit
-      const url = document.getElementById('coverUrl').value;
-      if (url) showCoverPreview(url);
-
-      // Load blocks nếu đang edit
-      const raw = document.getElementById('contentJson').value;
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          blocks = Array.isArray(parsed) ? parsed : [];
-        } catch {
-          // content cũ dạng text thuần
-          blocks = [{ id: Date.now(), type: 'text', heading: '', content: raw }];
+        const url = document.getElementById('coverUrl').value;
+        if (url) showCoverPreview(url);
+        const raw = document.getElementById('contentJson').value;
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw);
+                blocks = Array.isArray(parsed) ? parsed : [];
+            } catch {
+                blocks = [{ id: Date.now(), type: 'text', heading: '', content: raw }];
+            }
+            render();
         }
-        render();
-      }
-
-      // Click vùng ảnh bìa
-      document.getElementById('coverArea').addEventListener('click', e => {
-        if (!e.target.classList.contains('btn-remove-img'))
-          document.getElementById('coverFile').click();
-      });
-      document.getElementById('coverFile').addEventListener('change', async function () {
-        if (!this.files[0]) return;
-        setCoverLoading(true);
-        try {
-          const url = await upload(this.files[0]);
-          document.getElementById('coverUrl').value = url;
-          showCoverPreview(url);
-        } catch (e) { alert('Upload thất bại: ' + e.message); }
-        setCoverLoading(false);
-      });
+        document.getElementById('coverArea').addEventListener('click', e => {
+            if (!e.target.classList.contains('btn-remove-img'))
+                document.getElementById('coverFile').click();
+        });
+        document.getElementById('coverFile').addEventListener('change', async function () {
+            if (!this.files[0]) return;
+            setCoverLoading(true);
+            try {
+                const url = await upload(this.files[0]);
+                document.getElementById('coverUrl').value = url;
+                showCoverPreview(url);
+            } catch (e) { alert('Upload thất bại: ' + e.message); }
+            setCoverLoading(false);
+        });
     });
 
-    /* ── cover helpers ── */
     function showCoverPreview(url) {
-      document.getElementById('coverImg').src = url;
-      document.getElementById('coverPlaceholder').style.display = 'none';
-      document.getElementById('coverPreview').style.display = 'block';
+        document.getElementById('coverImg').src = url;
+        document.getElementById('coverPlaceholder').style.display = 'none';
+        document.getElementById('coverPreview').style.display = 'block';
     }
     function removeCover() {
-      document.getElementById('coverUrl').value = '';
-      document.getElementById('coverImg').src = '';
-      document.getElementById('coverFile').value = '';
-      document.getElementById('coverPreview').style.display = 'none';
-      document.getElementById('coverPlaceholder').style.display = 'block';
+        document.getElementById('coverUrl').value = '';
+        document.getElementById('coverImg').src = '';
+        document.getElementById('coverFile').value = '';
+        document.getElementById('coverPreview').style.display = 'none';
+        document.getElementById('coverPlaceholder').style.display = 'block';
     }
     function setCoverLoading(on) {
-      document.getElementById('coverLoading').style.display = on ? 'block' : 'none';
-      document.getElementById('coverPlaceholder').style.display = on ? 'none' : 'block';
+        document.getElementById('coverLoading').style.display = on ? 'block' : 'none';
+        document.getElementById('coverPlaceholder').style.display = on ? 'none' : 'block';
     }
 
-    /* ── upload ── */
     async function upload(file) {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      if (!res.ok) throw new Error('Server lỗi ' + res.status);
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      return data.url;
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('Server lỗi ' + res.status);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        return data.url;
     }
 
-    /* ── block CRUD ── */
     function addBlock(type) {
-      blocks.push({ id: Date.now(), type,
-        heading: '', content: '', imageUrl: '', caption: '' });
-      render();
+        blocks.push({ id: Date.now(), type, heading: '', content: '', imageUrl: '', caption: '' });
+        render();
     }
     function removeBlock(id) {
-      blocks = blocks.filter(b => b.id !== id);
-      render();
+        blocks = blocks.filter(b => b.id !== id);
+        render();
     }
     function move(id, dir) {
-      const i = blocks.findIndex(b => b.id === id);
-      if (dir === 'up' && i > 0)
-        [blocks[i-1], blocks[i]] = [blocks[i], blocks[i-1]];
-      if (dir === 'down' && i < blocks.length - 1)
-        [blocks[i], blocks[i+1]] = [blocks[i+1], blocks[i]];
-      render();
+        const i = blocks.findIndex(b => b.id === id);
+        if (dir === 'up' && i > 0) [blocks[i-1], blocks[i]] = [blocks[i], blocks[i-1]];
+        if (dir === 'down' && i < blocks.length - 1) [blocks[i], blocks[i+1]] = [blocks[i+1], blocks[i]];
+        render();
     }
     function set(id, field, val) {
-      const b = blocks.find(b => b.id === id);
-      if (b) b[field] = val;
+        const b = blocks.find(b => b.id === id);
+        if (b) b[field] = val;
     }
 
-    /* ── render ── */
     function render() {
-      const c = document.getElementById('blocksContainer');
-      c.innerHTML = '';
-      blocks.forEach((b, i) => c.appendChild(makeBlock(b, i)));
+        const c = document.getElementById('blocksContainer');
+        c.innerHTML = '';
+        blocks.forEach((b, i) => c.appendChild(makeBlock(b, i)));
     }
 
     function makeBlock(b, i) {
-      const wrap = document.createElement('div');
-      wrap.className = 'block-item';
-      wrap.dataset.id = b.id;
-
-      const labels = { heading: '📌 Tiêu đề mục', text: '📄 Nội dung văn bản', image: '🖼 Hình ảnh' };
-      const last = blocks.length - 1;
-
-      wrap.innerHTML = `
+        const wrap = document.createElement('div');
+        wrap.className = 'block-item';
+        wrap.dataset.id = b.id;
+        const labels = {
+            heading: '<i class="fa-solid fa-heading"></i> Tiêu đề mục',
+            text: '<i class="fa-solid fa-align-left"></i> Nội dung văn bản',
+            image: '<i class="fa-solid fa-image"></i> Hình ảnh'
+        };
+        const last = blocks.length - 1;
+        wrap.innerHTML = `
         <div class="block-header">
           <span class="block-type-label">${labels[b.type]}</span>
           <div class="block-actions">
@@ -228,35 +220,31 @@
           </div>
         </div>
         <div class="block-body">${bodyHtml(b)}</div>`;
-      return wrap;
+        return wrap;
     }
 
     function bodyHtml(b) {
-      const h = esc(b.heading || '');
-      if (b.type === 'heading') return `
+        const h = esc(b.heading || '');
+        if (b.type === 'heading') return `
         <input type="text" class="block-heading-input"
           placeholder="Nhập tiêu đề mục..." value="${h}"
           oninput="set(${b.id},'heading',this.value)"/>`;
-
-      if (b.type === 'text') return `
+        if (b.type === 'text') return `
         <input type="text" class="block-heading-input"
           placeholder="Tiêu đề mục (tùy chọn)" value="${h}"
           oninput="set(${b.id},'heading',this.value)"/>
         <textarea rows="6" placeholder="Nội dung văn bản..."
           oninput="set(${b.id},'content',this.value)">${esc(b.content||'')}</textarea>`;
-
-      if (b.type === 'image') {
-        const imgPart = b.imageUrl
-          ? `<div class="block-image-preview">
+        if (b.type === 'image') {
+            const imgPart = b.imageUrl
+                ? `<div class="block-image-preview">
                <img src="${esc(b.imageUrl)}" alt=""/>
-               <button type="button" class="btn-remove-img"
-                 onclick="clearBlockImg(${b.id})">✕ Xóa</button>
+               <button type="button" class="btn-remove-img" onclick="clearBlockImg(${b.id})">✕ Xóa</button>
              </div>`
-          : `<div class="block-image-upload"
-               onclick="document.getElementById('bf-${b.id}').click()">
-               📷 Nhấn để chọn hình ảnh
+                : `<div class="block-image-upload" onclick="document.getElementById('bf-${b.id}').click()">
+               <i class="fa-solid fa-image"></i> Nhấn để chọn hình ảnh
              </div>`;
-        return `
+            return `
           <input type="file" id="bf-${b.id}" accept="image/*" style="display:none"
             onchange="uploadBlockImg(${b.id},this)"/>
           <input type="text" class="block-heading-input"
@@ -267,65 +255,62 @@
           <input type="text" class="block-caption-input"
             placeholder="Chú thích ảnh (tùy chọn)" value="${esc(b.caption||'')}"
             oninput="set(${b.id},'caption',this.value)"/>`;
-      }
-      return '';
+        }
+        return '';
     }
 
- async function uploadBlockImg(id, input) {
-  if (!input.files[0]) return;
+    async function uploadBlockImg(id, input) {
+        if (!input.files[0]) return;
+        const b = blocks.find(x => x.id === id);
+        if (!b || b._uploading) return;
+        b._uploading = true;
+        syncBlocks();
+        const loadingEl = document.getElementById(`bl-${id}`);
+        if (loadingEl) loadingEl.style.display = 'block';
+        try {
+            const url = await upload(input.files[0]);
+            b.imageUrl = url;
+            b._uploading = false;
+            render();
+        } catch(e) {
+            b._uploading = false;
+            alert('Upload thất bại: ' + e.message);
+            if (loadingEl) loadingEl.style.display = 'none';
+        }
+    }
 
-  const b = blocks.find(x => x.id === id);
-  if (!b || b._uploading) return;
-  b._uploading = true;
-
-  syncBlocks();
-
-  // Hiện loading mà không render lại toàn bộ
-  const loadingEl = document.getElementById(`bl-${id}`);
-  const uploadArea = loadingEl ? loadingEl.previousElementSibling : null;
-  if (loadingEl) loadingEl.style.display = 'block';
-
-  try {
-    const url = await upload(input.files[0]);
-    b.imageUrl = url;
-    b._uploading = false;
-    render();
-  } catch(e) {
-    b._uploading = false;
-    alert('Upload thất bại: ' + e.message);
-    if (loadingEl) loadingEl.style.display = 'none';
-  }
-}
     function clearBlockImg(id) { set(id, 'imageUrl', ''); render(); }
+
     function syncBlocks() {
-  document.querySelectorAll('.block-item').forEach(el => {
-    const id = parseInt(el.dataset.id);
-    const b = blocks.find(x => x.id === id);
-    if (!b || b._uploading) return;  // ← thêm b._uploading
-    const ta = el.querySelector('textarea');
-    if (ta) b.content = ta.value;
-    const ins = el.querySelectorAll('input[type="text"]');
-    if (b.type === 'text' && ins[0]) b.heading = ins[0].value;
-    if (b.type === 'heading' && ins[0]) b.heading = ins[0].value;
-    if (b.type === 'image') {
-      if (ins[0]) b.heading = ins[0].value;
-      if (ins[1]) b.caption = ins[1].value;
+        document.querySelectorAll('.block-item').forEach(el => {
+            const id = parseInt(el.dataset.id);
+            const b = blocks.find(x => x.id === id);
+            if (!b || b._uploading) return;
+            const ta = el.querySelector('textarea');
+            if (ta) b.content = ta.value;
+            const ins = el.querySelectorAll('input[type="text"]');
+            if (b.type === 'text' && ins[0]) b.heading = ins[0].value;
+            if (b.type === 'heading' && ins[0]) b.heading = ins[0].value;
+            if (b.type === 'image') {
+                if (ins[0]) b.heading = ins[0].value;
+                if (ins[1]) b.caption = ins[1].value;
+            }
+        });
     }
-  });
-}
-   function submitForm() {
-  const uploading = blocks.some(b => b._uploading);
-  if (uploading) {
-    alert('Vui lòng chờ ảnh tải lên xong!');
-    return;
-  }
-  syncBlocks();
-  document.getElementById('contentJson').value = JSON.stringify(blocks);
-  document.getElementById('articleForm').submit();
-}
+
+    function submitForm() {
+        if (blocks.some(b => b._uploading)) {
+            alert('Vui lòng chờ ảnh tải lên xong!');
+            return;
+        }
+        syncBlocks();
+        document.getElementById('contentJson').value = JSON.stringify(blocks);
+        document.getElementById('articleForm').submit();
+    }
+
     function esc(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;')
-        .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+            .replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 </script>
 </body>

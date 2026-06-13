@@ -34,8 +34,9 @@ public class Article {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
-    @Column(name = "is_published")
-    private boolean published = false;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ArticleStatus status = ArticleStatus.DRAFT;
 
     @Column(name = "view_count")
     private int viewCount = 0;
@@ -78,8 +79,11 @@ public class Article {
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
-    public boolean isPublished() { return published; }
-    public void setPublished(boolean published) { this.published = published; }
+    public ArticleStatus getStatus() { return status; }
+    public void setStatus(ArticleStatus status) { this.status = status; }
+
+    // Giữ lại isPublished() để tương thích Thymeleaf cũ (tùy)
+    public boolean isPublished() { return status == ArticleStatus.PUBLISHED; }
 
     public int getViewCount() { return viewCount; }
     public void setViewCount(int viewCount) { this.viewCount = viewCount; }

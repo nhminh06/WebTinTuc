@@ -1,6 +1,7 @@
 package com.news.repository;
 
 import com.news.model.Article;
+import com.news.model.ArticleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,24 +16,26 @@ import java.util.List;
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, Long> {
 
-    Page<Article> findByPublishedTrueOrderByCreatedAtDesc(Pageable pageable);
+    Page<Article> findByStatusOrderByCreatedAtDesc(ArticleStatus status, Pageable pageable);
 
-    Page<Article> findByCategoryAndPublishedTrueOrderByCreatedAtDesc(String category, Pageable pageable);
+    Page<Article> findByCategoryAndStatusOrderByCreatedAtDesc(String category, ArticleStatus status, Pageable pageable);
 
-    List<Article> findTop5ByPublishedTrueOrderByViewCountDesc();
+    List<Article> findTop5ByStatusOrderByViewCountDesc(ArticleStatus status);
 
-    List<Article> findTop6ByPublishedTrueOrderByCreatedAtDesc();
+    List<Article> findTop10ByStatusOrderByCreatedAtDesc(ArticleStatus status);
 
-    @Query("SELECT a FROM Article a WHERE a.published = true AND " +
-           "(LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(a.content) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Article> searchArticles(@Param("keyword") String keyword, Pageable pageable);
+    @Query("SELECT a FROM Article a WHERE a.status = :status AND " +
+            "(LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(a.content) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Article> searchArticles(@Param("keyword") String keyword,
+                                 @Param("status") ArticleStatus status,
+                                 Pageable pageable);
 
     @Modifying
     @Transactional
     @Query("UPDATE Article a SET a.viewCount = a.viewCount + 1 WHERE a.id = :id")
     void incrementViewCount(@Param("id") Long id);
 
-    List<Article> findTop4ByCategoryAndPublishedTrueAndIdNotOrderByCreatedAtDesc(
-        String category, Long id);
+    List<Article> findTop4ByCategoryAndStatusAndIdNotOrderByCreatedAtDesc(
+            String category, ArticleStatus status, Long id);
 }

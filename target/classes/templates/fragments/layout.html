@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head(title)">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -7,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 <body>
 
@@ -15,11 +17,15 @@
         <div class="container">
             <div class="header-top-inner">
                 <span class="date-display" id="currentDate"></span>
-                <div class="header-search">
-                    <form action="/search" method="get">
-                        <input type="text" name="keyword" placeholder="Tìm kiếm..." />
-                        <button type="submit">🔍</button>
-                    </form>
+                <div class="header-auth">
+                    <span sec:authorize="isAuthenticated()">
+                        <span class="auth-username"><i class="fa-solid fa-circle-user"></i> <span sec:authentication="name"></span></span>
+                        <a href="/logout" class="auth-link-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
+                    </span>
+                    <span sec:authorize="!isAuthenticated()">
+                        <a href="/login" class="auth-link-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
+                        <a href="/register" class="auth-link-btn auth-link-btn--outline"><i class="fa-solid fa-user-plus"></i> Đăng ký</a>
+                    </span>
                 </div>
             </div>
         </div>
@@ -32,41 +38,110 @@
         </div>
     </div>
     <nav class="main-nav">
-        <div class="container">
+        <div class="container nav-inner">
             <ul class="nav-list">
-                <li><a href="/" th:classappend="${currentPage == 'home'} ? 'active'">Trang chủ</a></li>
-                <li><a href="/category/Công nghệ" th:classappend="${currentPage == 'Công nghệ'} ? 'active'">Công nghệ</a></li>
-                <li><a href="/category/Thể thao" th:classappend="${currentPage == 'Thể thao'} ? 'active'">Thể thao</a></li>
-                <li><a href="/category/Kinh tế" th:classappend="${currentPage == 'Kinh tế'} ? 'active'">Kinh tế</a></li>
-                <li><a href="/category/Giải trí" th:classappend="${currentPage == 'Giải trí'} ? 'active'">Giải trí</a></li>
-                <li><a href="/category/Xã hội" th:classappend="${currentPage == 'Xã hội'} ? 'active'">Xã hội</a></li>
-                <li class="nav-admin"><a href="/admin">⚙ Admin</a></li>
+                <li><a href="/" th:classappend="${currentPage == 'home'} ? 'active'"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
+                <li><a href="/category/Công nghệ" th:classappend="${currentPage == 'Công nghệ'} ? 'active'"><i class="fa-solid fa-microchip"></i> Công nghệ</a></li>
+                <li><a href="/category/Thể thao" th:classappend="${currentPage == 'Thể thao'} ? 'active'"><i class="fa-solid fa-futbol"></i> Thể thao</a></li>
+                <li><a href="/category/Kinh tế" th:classappend="${currentPage == 'Kinh tế'} ? 'active'"><i class="fa-solid fa-chart-line"></i> Kinh tế</a></li>
+                <li><a href="/category/Giải trí" th:classappend="${currentPage == 'Giải trí'} ? 'active'"><i class="fa-solid fa-film"></i> Giải trí</a></li>
+                <li><a href="/category/Xã hội" th:classappend="${currentPage == 'Xã hội'} ? 'active'"><i class="fa-solid fa-city"></i> Xã hội</a></li>
+                <li class="nav-admin"><a href="/admin"><i class="fa-solid fa-gear"></i> Admin</a></li>
             </ul>
+            <form class="nav-search" action="/search" method="get">
+                <input type="text" name="keyword" placeholder="Tìm kiếm..." />
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
         </div>
     </nav>
 </header>
-
+<div th:fragment="admin-sidebar">
+    <aside class="admin-sidebar">
+        <a href="/" class="admin-sidebar-logo">
+            <span class="logo-viet">VIET</span><span class="logo-news">NEWS</span>
+        </a>
+        <div class="admin-sidebar-header">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Quản trị</span>
+        </div>
+        <nav class="admin-nav">
+            <a href="/admin" class="admin-nav-item"
+               th:classappend="${adminPage == 'dashboard'} ? ' active'">
+                <i class="fa-solid fa-gauge"></i> Tổng quan
+            </a>
+            <a href="/admin/articles" class="admin-nav-item"
+               th:classappend="${adminPage == 'articles'} ? ' active'">
+                <i class="fa-solid fa-newspaper"></i> Quản lý bài viết
+            </a>
+            <a href="/admin/articles/new" class="admin-nav-item"
+               th:classappend="${adminPage == 'new-article'} ? ' active'">
+                <i class="fa-solid fa-pen-to-square"></i> Viết bài mới
+            </a>
+            <a href="/admin/users" class="admin-nav-item"
+               th:classappend="${adminPage == 'users'} ? ' active'">
+                <i class="fa-solid fa-users"></i> Quản lý người dùng
+            </a>
+            <a href="/admin/categories" class="admin-nav-item"
+               th:classappend="${adminPage == 'categories'} ? ' active'">
+                <i class="fa-solid fa-folder-open"></i> Danh mục
+            </a>
+            <a href="/admin/reports" class="admin-nav-item"
+               th:classappend="${adminPage == 'reports'} ? ' active'">
+                <i class="fa-solid fa-flag"></i> Báo cáo
+            </a>
+            <div class="admin-nav-divider"></div>
+            <a href="/" class="admin-nav-item">
+                <i class="fa-solid fa-arrow-left"></i> Về trang chủ
+            </a>
+        </nav>
+    </aside>
+</div>
 <footer th:fragment="footer" class="site-footer">
     <div class="container">
-        <div class="footer-grid">
+        <div class="footer-main">
             <div class="footer-brand">
                 <a href="/" class="logo">
                     <span class="logo-viet">VIET</span><span class="logo-news">NEWS</span>
                 </a>
-                <p>Kênh tin tức nhanh, chính xác và đáng tin cậy.</p>
+                <p>Kênh tin tức nhanh, chính xác và đáng tin cậy. Cập nhật 24/7 mọi sự kiện trong nước và quốc tế.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-btn"><i class="fa-brands fa-facebook-f"></i> Facebook</a>
+                    <a href="#" class="social-btn"><i class="fa-brands fa-x-twitter"></i> Twitter</a>
+                    <a href="#" class="social-btn"><i class="fa-brands fa-youtube"></i> YouTube</a>
+                </div>
             </div>
-            <div class="footer-links">
-                <h4>Chuyên mục</h4>
-                <ul>
-                    <li><a href="/category/Công nghệ">Công nghệ</a></li>
-                    <li><a href="/category/Thể thao">Thể thao</a></li>
-                    <li><a href="/category/Kinh tế">Kinh tế</a></li>
-                    <li><a href="/category/Giải trí">Giải trí</a></li>
+            <div class="footer-col">
+                <h4 class="footer-col-title">Chuyên mục</h4>
+                <ul class="footer-col-list">
+                    <li><a href="/category/Công nghệ"><i class="fa-solid fa-microchip"></i> Công nghệ</a></li>
+                    <li><a href="/category/Thể thao"><i class="fa-solid fa-futbol"></i> Thể thao</a></li>
+                    <li><a href="/category/Kinh tế"><i class="fa-solid fa-chart-line"></i> Kinh tế</a></li>
+                    <li><a href="/category/Giải trí"><i class="fa-solid fa-film"></i> Giải trí</a></li>
+                    <li><a href="/category/Xã hội"><i class="fa-solid fa-city"></i> Xã hội</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-col-title">Liên kết</h4>
+                <ul class="footer-col-list">
+                    <li><a href="/"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
+                    <li><a href="/search"><i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm</a></li>
+                    <li><a href="/admin"><i class="fa-solid fa-gear"></i> Quản trị</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-col-title">Liên hệ</h4>
+                <ul class="footer-col-list no-hover">
+                    <li><i class="fa-solid fa-envelope"></i> contact@vietnews.vn</li>
+                    <li><i class="fa-solid fa-phone"></i> 0123 456 789</li>
+                    <li><i class="fa-solid fa-location-dot"></i> Hà Nội, Việt Nam</li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
             <p>© 2024 VietNews. Bản quyền được bảo lưu.</p>
+            <p style="font-size:12px; margin-top:4px; color:#444">
+                Giấy phép hoạt động báo chí số 123/GP-BTTTT
+            </p>
         </div>
     </div>
 </footer>
