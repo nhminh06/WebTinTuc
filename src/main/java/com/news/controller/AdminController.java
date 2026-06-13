@@ -32,8 +32,12 @@ public class AdminController {
 
     @GetMapping("/articles")
     public String listArticles(@RequestParam(defaultValue = "0") int page, Model model) {
-        Page<Article> articles = articleService.getAllArticles(page, 10);
+        Page<Article> articles = articleService.getAllArticles(page, 11);
         model.addAttribute("articles", articles);
+        model.addAttribute("totalArticles", articles.getTotalElements());
+        model.addAttribute("totalPublished", articleService.countByStatus(ArticleStatus.PUBLISHED));
+        model.addAttribute("totalDraft", articleService.countByStatus(ArticleStatus.DRAFT));
+        model.addAttribute("totalHidden", articleService.countByStatus(ArticleStatus.HIDDEN));
         model.addAttribute("adminPage", "articles");
         return "admin/articles";
     }

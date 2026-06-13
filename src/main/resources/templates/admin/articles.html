@@ -16,12 +16,52 @@
 
         <div class="flash-msg success" th:if="${success}" th:text="${success}"></div>
 
+        <!-- THỐNG KÊ NHANH -->
+        <div class="admin-stats" style="margin-bottom:1.5rem">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f0f7ff">
+                    <i class="fa-solid fa-newspaper" style="color:#1565c0"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${totalArticles}">0</span>
+                    <span class="stat-label">Tổng bài viết</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f0fff4">
+                    <i class="fa-solid fa-circle-check" style="color:#2e7d32"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${totalPublished}">0</span>
+                    <span class="stat-label">Đã đăng</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fffbf0">
+                    <i class="fa-solid fa-file-pen" style="color:#f57f17"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${totalDraft}">0</span>
+                    <span class="stat-label">Nháp</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fff0f0">
+                    <i class="fa-solid fa-eye-slash" style="color:var(--red)"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${totalHidden}">0</span>
+                    <span class="stat-label">Đã ẩn</span>
+                </div>
+            </div>
+        </div>
+
         <div class="admin-card">
-            <table class="admin-table">
+            <table class="admin-table" style="table-layout:fixed; width:100%">
                 <thead>
                 <tr>
                     <th style="width:50px">ID</th>
-                    <th style="width:250px">Tiêu đề</th>  <!-- thêm width cố định -->
+                    <th style="width:250px">Tiêu đề</th>
                     <th style="width:110px">Danh mục</th>
                     <th style="width:120px">Tác giả</th>
                     <th style="width:100px">Trạng thái</th>
@@ -32,13 +72,17 @@
                 <tbody>
                 <tr th:each="article : ${articles}">
                     <td th:text="${article.id}">1</td>
-                    <td th:text="${#strings.abbreviate(article.title, 60)}">Tiêu đề</td>
+                    <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap"
+                        th:text="${#strings.abbreviate(article.title, 50)}">Tiêu đề</td>
                     <td th:text="${article.category}">Danh mục</td>
                     <td th:text="${article.author}">Tác giả</td>
                     <td>
                         <a th:href="@{/admin/articles/toggle/{id}(id=${article.id})}"
-                           th:class="${article.published} ? 'badge published' : 'badge draft'"
-                           th:text="${article.published} ? 'Đã đăng' : 'Nháp'"></a>
+                           th:class="${article.status.name() == 'PUBLISHED'} ? 'badge published' :
+                                     (${article.status.name() == 'HIDDEN'} ? 'badge hidden' : 'badge draft')"
+                           th:text="${article.status.name() == 'PUBLISHED'} ? 'Đã đăng' :
+                                    (${article.status.name() == 'HIDDEN'} ? 'Ẩn' : 'Nháp')">
+                        </a>
                     </td>
                     <td th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy')}">Ngày</td>
                     <td>
@@ -62,18 +106,19 @@
                 </tbody>
             </table>
 
-            <!-- Phân trang -->
-            <div class="pagination" style="padding:1rem" th:if="${articles.totalPages > 1}">
-                <a th:if="${articles.hasPreviousPage()}"
+            <!-- PHÂN TRANG -->
+            <div class="pagination" style="padding:1rem; display:flex; align-items:center; gap:6px; flex-wrap:wrap" th:if="${articles.totalPages > 1}">
+                <a th:if="${articles.hasPrevious()}"
                    th:href="@{/admin/articles(page=${articles.number - 1})}"
                    class="btn-page">← Trước</a>
-                <span th:each="i : ${#numbers.sequence(0, articles.totalPages - 1)}">
-                    <a th:href="@{/admin/articles(page=${i})}"
-                       th:text="${i + 1}"
-                       th:classappend="${i == articles.number} ? ' active'"
-                       class="btn-page"></a>
-                </span>
-                <a th:if="${articles.hasNextPage()}"
+
+                <a th:each="i : ${#numbers.sequence(0, articles.totalPages - 1)}"
+                   th:href="@{/admin/articles(page=${i})}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == articles.number} ? ' active'"
+                   class="btn-page"></a>
+
+                <a th:if="${articles.hasNext()}"
                    th:href="@{/admin/articles(page=${articles.number + 1})}"
                    class="btn-page">Sau →</a>
             </div>
@@ -81,7 +126,6 @@
 
     </main>
 </div>
-
 
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>

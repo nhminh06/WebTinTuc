@@ -24,6 +24,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     List<Article> findTop10ByStatusOrderByCreatedAtDesc(ArticleStatus status);
 
+    Page<Article> findByAuthorOrderByCreatedAtDesc(String author, Pageable pageable);
+
+    long countByStatus(ArticleStatus status);
     @Query("SELECT a FROM Article a WHERE a.status = :status AND " +
             "(LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(a.content) LIKE LOWER(CONCAT('%', :keyword, '%')))")
@@ -38,4 +41,6 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     List<Article> findTop4ByCategoryAndStatusAndIdNotOrderByCreatedAtDesc(
             String category, ArticleStatus status, Long id);
+
+
 }

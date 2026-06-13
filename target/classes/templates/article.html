@@ -11,14 +11,18 @@
 
             <article class="article-detail">
                 <div class="article-header">
+                    <div class="flash-msg warning" th:if="${!article.published and (isOwner or isAdmin)}">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Bài viết này hiện chưa được hiển thị công khai (trạng thái: <span th:text="${article.status}"></span>). Chỉ bạn và admin xem được trang này.
+                    </div>
                     <span class="category-badge lg" th:text="${article.category}">Danh mục</span>
                     <h1 th:text="${article.title}">Tiêu đề bài viết</h1>
                     <p class="article-summary" th:text="${article.summary}">Tóm tắt</p>
                     <div class="article-meta-bar">
-                        <span>✍ <span th:text="${article.author}">Tác giả</span></span>
-                        <span>📅 <span th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</span></span>
-                        <span>👁 <span th:text="${article.viewCount}">0</span> lượt xem</span>
-                    </div>
+                        <span><i class="fa-solid fa-pen-nib"></i> <span th:text="${article.author}">Tác giả</span></span>
+                        <span><i class="fa-regular fa-calendar"></i> <span th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</span></span>
+                        <span><i class="fa-regular fa-eye"></i> <span th:text="${article.viewCount}">0</span> lượt xem</span>
+                    </div>  
                 </div>
 
                 <div class="article-thumbnail">
@@ -77,18 +81,18 @@
                     <ol class="popular-list">
                         <li th:each="pop : ${popularArticles}">
                             <a th:href="@{/article/{id}(id=${pop.id})}" th:text="${pop.title}">Tiêu đề</a>
-                            <span class="view-count">👁 <span th:text="${pop.viewCount}">0</span></span>
+                            <span class="view-count"><i class="fa-regular fa-eye"></i> <span th:text="${pop.viewCount}">0</span></span>
                         </li>
                     </ol>
                 </div>
                 <div class="sidebar-widget">
                     <h3 class="widget-title">Chuyên mục</h3>
                     <div class="category-tags">
-                        <a href="/category/Công nghệ" class="tag">💻 Công nghệ</a>
-                        <a href="/category/Thể thao" class="tag">⚽ Thể thao</a>
-                        <a href="/category/Kinh tế" class="tag">📈 Kinh tế</a>
-                        <a href="/category/Giải trí" class="tag">🎬 Giải trí</a>
-                        <a href="/category/Xã hội" class="tag">🏙 Xã hội</a>
+                        <a href="/category/Công nghệ" class="tag"><i class="fa-solid fa-microchip"></i> Công nghệ</a>
+                        <a href="/category/Thể thao" class="tag"><i class="fa-solid fa-futbol"></i> Thể thao</a>
+                        <a href="/category/Kinh tế" class="tag"><i class="fa-solid fa-chart-line"></i> Kinh tế</a>
+                        <a href="/category/Giải trí" class="tag"><i class="fa-solid fa-film"></i> Giải trí</a>
+                        <a href="/category/Xã hội" class="tag"><i class="fa-solid fa-city"></i> Xã hội</a>
                     </div>
                 </div>
             </aside>

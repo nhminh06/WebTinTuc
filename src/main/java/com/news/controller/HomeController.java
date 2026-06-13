@@ -28,13 +28,30 @@ public class HomeController {
     }
 
     @GetMapping("/article/{id}")
-    public String viewArticle(@PathVariable Long id, Model model) {
+    public String viewArticle(@PathVariable Long id, Model model,
+                              org.springframework.security.core.Authentication authentication) {
         Optional<Article> optArticle = articleService.getArticleById(id);
-        if (optArticle.isEmpty() || !optArticle.get().isPublished()) {
+        if (optArticle.isEmpty()) {
             return "redirect:/";
         }
         Article article = optArticle.get();
-        articleService.incrementView(id);
+
+        boolean isOwner = authentication != null && authentication.isAuthenticated()
+                && authentication.getName().equals(article.getAuthor());
+        boolean isAdmin = authentication != null && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!article.isPublished() && !isOwner && !isAdmin) {
+            return "redirect:/";
+        }
+
+        if (article.isPublished()) {
+            articleService.incrementView(id);
+        }
+
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isAdmin", isAdmin);
 
         // Parse JSON content thành blocks
         List<Object> contentBlocks = new java.util.ArrayList<>();
@@ -48,7 +65,6 @@ public class HomeController {
                         contentBlocks.add(mapper.convertValue(node, Object.class)));
             }
         } catch (Exception e) {
-            // content cũ không phải JSON
             contentBlocks.add(java.util.Map.of(
                     "type", "text",
                     "heading", "",

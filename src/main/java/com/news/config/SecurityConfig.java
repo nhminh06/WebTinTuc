@@ -18,13 +18,13 @@ public class SecurityConfig {
     private UserService userService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // inject từ PasswordEncoderConfig
+    private PasswordEncoder passwordEncoder;
 
     @Bean
     public DaoAuthenticationProvider authProvider() {
         DaoAuthenticationProvider p = new DaoAuthenticationProvider();
         p.setUserDetailsService(userService);
-        p.setPasswordEncoder(passwordEncoder); // dùng field thay vì gọi method
+        p.setPasswordEncoder(passwordEncoder);
         return p;
     }
 
@@ -33,7 +33,9 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/user/**", "/profile/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
+                        .requestMatchers("/api/upload").authenticated()
                         .requestMatchers("/", "/article/**", "/category/**", "/search",
                                 "/login", "/register").permitAll()
                         .anyRequest().authenticated()
@@ -48,6 +50,8 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
                         .permitAll()
                 )
                 .authenticationProvider(authProvider());

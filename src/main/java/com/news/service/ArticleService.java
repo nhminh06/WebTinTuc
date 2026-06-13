@@ -79,4 +79,15 @@ public class ArticleService {
             articleRepository.save(article);
         });
     }
+    public Page<Article> getArticlesByAuthor(String author, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return articleRepository.findByAuthorOrderByCreatedAtDesc(author, pageable);
+    }
+    public long countByStatus(ArticleStatus status) {
+        return articleRepository.countByStatus(status);
+    }
+
+    public long countAll() {
+        return articleRepository.count();
+    }
 }

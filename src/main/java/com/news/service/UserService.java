@@ -1,4 +1,3 @@
-// src/main/java/com/news/service/UserService.java
 package com.news.service;
 
 import com.news.model.User;
@@ -32,6 +31,12 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
+    // Thêm method này
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user: " + username));
+    }
+
     public User register(String username, String email, String password) {
         User user = new User();
         user.setUsername(username);
@@ -62,5 +67,52 @@ public class UserService implements UserDetailsService {
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+    public void updateProfile(String username, String email, String newPassword, String confirmPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
+
+        // Kiểm tra email trùng
+        if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email đã được sử dụng!");
+        }
+        user.setEmail(email);
+
+        // Đổi mật khẩu nếu có nhập
+        if (newPassword != null && !newPassword.isBlank()) {
+            if (!newPassword.equals(confirmPassword)) {
+                throw new RuntimeException("Mật khẩu xác nhận không khớp!");
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        userRepository.save(user);
+    }
+    public void updateProfile(String currentUsername, String newUsername, String email,
+                              String newPassword, String confirmPassword) {
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
+
+        // Kiểm tra username trùng
+        if (!currentUsername.equals(newUsername) && userRepository.existsByUsername(newUsername)) {
+            throw new RuntimeException("Tên đăng nhập đã tồn tại!");
+        }
+        user.setUsername(newUsername);
+
+        // Kiểm tra email trùng
+        if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email đã được sử dụng!");
+        }
+        user.setEmail(email);
+
+        // Đổi mật khẩu nếu có nhập
+        if (newPassword != null && !newPassword.isBlank()) {
+            if (!newPassword.equals(confirmPassword)) {
+                throw new RuntimeException("Mật khẩu xác nhận không khớp!");
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        userRepository.save(user);
     }
 }

@@ -12,22 +12,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 <body>
+<div th:replace="~{fragments/layout :: header}"></div>
 
-<div class="admin-layout">
-    <div th:replace="~{fragments/layout :: admin-sidebar}"></div>
+<div class="user-layout">
+    <aside class="user-sidebar">
+        <div class="user-sidebar-profile">
+            <div class="user-avatar"><i class="fa-solid fa-circle-user"></i></div>
+        </div>
+        <nav class="user-nav">
+            <a href="/profile" class="user-nav-item">
+                <i class="fa-solid fa-circle-user"></i> Trang cá nhân
+            </a>
+            <a href="/user/articles" class="user-nav-item">
+                <i class="fa-solid fa-newspaper"></i> Bài viết của tôi
+            </a>
+            <a href="/user/articles/new" class="user-nav-item active">
+                <i class="fa-solid fa-pen-to-square"></i> Viết bài mới
+            </a>
+            <a href="/user/notifications" class="user-nav-item">
+                <i class="fa-solid fa-bell"></i> Thông báo
+                <span class="notif-badge">3</span>
+            </a>
+            <div class="user-nav-divider"></div>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="user-nav-item danger"
+                        style="width:100%; background:none; border:none; cursor:pointer; font:inherit; text-align:left">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </form>
+        </nav>
+    </aside>
 
-    <main class="admin-main">
-        <div class="admin-topbar">
+    <main class="user-main">
+        <div class="user-topbar">
             <h2>
                 <i class="fa-solid fa-pen-to-square"></i>
-                <span th:text="${article.id != null} ? 'Chỉnh sửa bài viết' : 'Viết bài mới'">Viết bài</span>
+                <span th:text="${article.id != null} ? 'Chỉnh sửa bài viết' : 'Viết bài mới'"></span>
             </h2>
-            <a href="/admin/articles" class="btn-secondary">
+            <a href="/user/articles" class="btn-secondary">
                 <i class="fa-solid fa-arrow-left"></i> Quay lại
             </a>
         </div>
 
-        <form th:action="@{/admin/articles/save}" th:object="${article}"
+        <form th:action="@{/user/articles/save}" th:object="${article}"
               method="post" id="articleForm">
             <input type="hidden" th:field="*{id}"/>
             <input type="hidden" th:field="*{viewCount}"/>
@@ -36,7 +64,7 @@
             <div class="form-section">
                 <div class="form-section-title">Thông tin chung</div>
                 <div class="form-group">
-                    <label>Tiêu đề chính *</label>
+                    <label>Tiêu đề *</label>
                     <input type="text" th:field="*{title}"
                            placeholder="Nhập tiêu đề bài viết..." class="form-control"/>
                     <span class="error" th:if="${#fields.hasErrors('title')}"
@@ -50,23 +78,16 @@
                     <span class="error" th:if="${#fields.hasErrors('summary')}"
                           th:errors="*{summary}"></span>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Danh mục</label>
-                        <select th:field="*{category}" class="form-control">
-                            <option value="">-- Chọn danh mục --</option>
-                            <option value="Công nghệ">Công nghệ</option>
-                            <option value="Thể thao">Thể thao</option>
-                            <option value="Kinh tế">Kinh tế</option>
-                            <option value="Giải trí">Giải trí</option>
-                            <option value="Xã hội">Xã hội</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tác giả</label>
-                        <input type="text" th:field="*{author}"
-                               placeholder="Tên tác giả" class="form-control"/>
-                    </div>
+                <div class="form-group">
+                    <label>Danh mục</label>
+                    <select th:field="*{category}" class="form-control">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option value="Công nghệ">Công nghệ</option>
+                        <option value="Thể thao">Thể thao</option>
+                        <option value="Kinh tế">Kinh tế</option>
+                        <option value="Giải trí">Giải trí</option>
+                        <option value="Xã hội">Xã hội</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Ảnh bìa</label>
@@ -104,28 +125,21 @@
                 </div>
             </div>
 
-            <div class="form-section">
-                <div class="form-group checkbox-group" style="margin:0">
-                    <label class="checkbox-label">
-                        <input type="checkbox" th:field="*{published}"/> Đăng ngay
-                    </label>
-                </div>
-            </div>
-
             <div class="form-actions">
-                <button type="button" class="btn-primary" onclick="submitForm()">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    <span th:text="${article.id != null} ? 'Cập nhật' : 'Đăng bài'">Lưu</span>
+                <button type="button" class="btn-secondary" onclick="saveAsDraft()">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu nháp
                 </button>
-                <a href="/admin/articles" class="btn-secondary">Hủy</a>
+                <button type="button" class="btn-primary" onclick="submitForm()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span th:text="${article.id != null} ? 'Cập nhật' : 'Gửi bài'">Gửi bài</span>
+                </button>
+                <a href="/user/articles" class="btn-secondary">Hủy</a>
             </div>
         </form>
     </main>
 </div>
 
-
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
-
 <script>
     let blocks = [];
 
@@ -175,7 +189,7 @@
         document.getElementById('coverPlaceholder').style.display = on ? 'none' : 'block';
     }
 
-   async function upload(file) {
+    async function upload(file) {
     const fd = new FormData();
     fd.append('file', file);
     const token = document.querySelector('meta[name="_csrf"]')?.content;
@@ -188,7 +202,6 @@
     if (data.error) throw new Error(data.error);
     return data.url;
 }
-
     function addBlock(type) {
         blocks.push({ id: Date.now(), type, heading: '', content: '', imageUrl: '', caption: '' });
         render();
@@ -310,6 +323,22 @@
                 if (ins[1]) b.caption = ins[1].value;
             }
         });
+    }
+
+    function saveAsDraft() {
+        if (blocks.some(b => b._uploading)) {
+            alert('Vui lòng chờ ảnh tải lên xong!');
+            return;
+        }
+        syncBlocks();
+        document.getElementById('contentJson').value = JSON.stringify(blocks);
+        // Thêm hidden input status = DRAFT
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'status';
+        input.value = 'DRAFT';
+        document.getElementById('articleForm').appendChild(input);
+        document.getElementById('articleForm').submit();
     }
 
     function submitForm() {
