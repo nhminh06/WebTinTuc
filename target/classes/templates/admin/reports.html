@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Quản lý báo cáo')}"></head>
+<body>
+<div class="admin-layout">
+    <div th:replace="~{fragments/layout :: admin-sidebar}"></div>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h2><i class="fa-solid fa-flag"></i> Quản lý báo cáo</h2>
+        </div>
+
+        <!-- Flash -->
+        <div th:if="${success}" class="flash-msg success">
+            <i class="fa-solid fa-circle-check"></i>
+            <span th:text="${success}"></span>
+        </div>
+
+        <!-- Stats -->
+        <div class="admin-stats" style="grid-template-columns:repeat(3,1fr); margin-bottom:1.5rem;">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fff8e6; color:#92660b;">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${countPending}">0</span>
+                    <span class="stat-label">Chờ xử lý</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#eaf7ee; color:#1e7e36;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${countResolved}">0</span>
+                    <span class="stat-label">Đã xử lý</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f5f5f5; color:#888;">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+                <div>
+                    <span class="stat-number" th:text="${countDismissed}">0</span>
+                    <span class="stat-label">Đã bỏ qua</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab filter -->
+        <div style="display:flex; gap:.5rem; margin-bottom:1.25rem;">
+            <a th:href="@{/admin/reports(status='PENDING')}"
+               th:class="${currentStatus == 'PENDING'} ? 'btn-primary' : 'btn-secondary'"
+               style="font-size:13px; padding:7px 18px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-clock"></i> Chờ xử lý
+                <span th:if="${countPending > 0}"
+                      style="background:var(--red); color:#fff; border-radius:999px;
+                             font-size:11px; padding:1px 7px; margin-left:2px;"
+                      th:text="${countPending}"></span>
+            </a>
+            <a th:href="@{/admin/reports(status='RESOLVED')}"
+               th:class="${currentStatus == 'RESOLVED'} ? 'btn-primary' : 'btn-secondary'"
+               style="font-size:13px; padding:7px 18px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-circle-check"></i> Đã xử lý
+            </a>
+            <a th:href="@{/admin/reports(status='DISMISSED')}"
+               th:class="${currentStatus == 'DISMISSED'} ? 'btn-primary' : 'btn-secondary'"
+               style="font-size:13px; padding:7px 18px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-ban"></i> Đã bỏ qua
+            </a>
+            <a th:href="@{/admin/reports}"
+               th:class="${currentStatus == 'null' or currentStatus == ''} ? 'btn-primary' : 'btn-secondary'"
+               style="font-size:13px; padding:7px 18px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-list"></i> Tất cả
+            </a>
+        </div>
+
+        <!-- Table -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <span><i class="fa-solid fa-flag" style="color:var(--red);margin-right:6px;"></i>
+                    Danh sách báo cáo
+                </span>
+            </div>
+
+            <div th:if="${reports.totalElements == 0}"
+                 style="padding:3rem; text-align:center; color:var(--text-muted);">
+                <i class="fa-solid fa-flag" style="font-size:2rem; margin-bottom:.75rem; display:block; color:#ddd;"></i>
+                Không có báo cáo nào.
+            </div>
+
+            <table class="admin-table" th:if="${reports.totalElements > 0}">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nội dung bình luận</th>
+                    <th>Tác giả BL</th>
+                    <th>Nguyên nhân</th>
+                    <th>Người báo cáo</th>
+                    <th>Bài viết</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r, stat : ${reports.content}">
+                    <td style="color:var(--text-muted); font-size:12px;"
+                        th:text="${reports.number * reports.size + stat.index + 1}">1</td>
+
+                    <!-- Comment content -->
+                    <td style="max-width:260px;">
+                        <div style="background:var(--bg); border-left:3px solid var(--red);
+                                        padding:6px 10px; border-radius:0 6px 6px 0;
+                                        font-size:13px; line-height:1.5;
+                                        display:-webkit-box; -webkit-line-clamp:3;
+                                        -webkit-box-orient:vertical; overflow:hidden;"
+                             th:text="${r.commentContent}">nội dung</div>
+                    </td>
+
+                    <!-- Comment author -->
+                    <td>
+                            <span style="display:inline-flex; align-items:center; gap:6px;">
+                                <span style="width:28px; height:28px; border-radius:50%;
+                                             background:var(--red-soft); color:var(--red);
+                                             display:inline-flex; align-items:center; justify-content:center;
+                                             font-weight:800; font-size:12px; flex-shrink:0;"
+                                      th:text="${r.commentAuthor != null ? #strings.toUpperCase(#strings.substring(r.commentAuthor,0,1)) : '?'}">A</span>
+                                <span style="font-weight:600; font-size:13px;" th:text="${r.commentAuthor}">user</span>
+                            </span>
+                    </td>
+                    <!-- Sau block comment-author, thêm cột reason -->
+                    <td>
+                        <span th:if="${r.reason != null}"
+                              style="background:#fff8e6; color:#92660b; padding:3px 10px;
+                                     border-radius:999px; font-size:12px; font-weight:600;
+                                     display:inline-block;"
+                              th:text="${r.reason}">
+                        </span>
+                        <span th:if="${r.reason == null}"
+                              style="color:#ccc; font-size:12px;">—</span>
+                    </td>
+                    <!-- Reporter -->
+                    <td style="font-size:13px; color:var(--text-muted);">
+                        <i class="fa-solid fa-flag" style="color:#e67e22; font-size:11px;"></i>
+                        <span th:text="${r.reporterUsername}">reporter</span>
+                    </td>
+
+                    <!-- Article link -->
+                    <td>
+                        <a th:if="${r.articleId != null}"
+                           th:href="@{/article/{id}(id=${r.articleId})}"
+                           target="_blank"
+                           style="font-size:12.5px; color:var(--red); display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem bài
+                        </a>
+                    </td>
+
+                    <!-- Time -->
+                    <td style="color:var(--text-muted); font-size:12px; white-space:nowrap;"
+                        th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024</td>
+
+                    <!-- Status badge -->
+                    <td>
+                            <span th:switch="${r.status.name()}">
+                                <span th:case="'PENDING'"
+                                      style="background:#fff8e6; color:#92660b; padding:3px 10px;
+                                             border-radius:999px; font-size:11.5px; font-weight:700;">
+                                    ⏳ Chờ xử lý
+                                </span>
+                                <span th:case="'RESOLVED'"
+                                      style="background:#eaf7ee; color:#1e7e36; padding:3px 10px;
+                                             border-radius:999px; font-size:11.5px; font-weight:700;">
+                                    ✓ Đã xử lý
+                                </span>
+                                <span th:case="'DISMISSED'"
+                                      style="background:#f5f5f5; color:#888; padding:3px 10px;
+                                             border-radius:999px; font-size:11.5px; font-weight:700;">
+                                    ✗ Bỏ qua
+                                </span>
+                            </span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td>
+                        <div class="action-btns" style="flex-wrap:nowrap;">
+                            <!-- Xử lý: xóa comment -->
+                            <form th:if="${r.status.name() == 'PENDING'}"
+                                  th:action="@{/admin/reports/resolve/{id}(id=${r.id})}"
+                                  method="post" style="display:inline;"
+                                  onsubmit="return confirm('Xóa bình luận vi phạm này?')">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <input type="hidden" name="status" th:value="${currentStatus}"/>
+                                <input type="hidden" name="page" th:value="${reports.number}"/>
+                                <button type="submit" class="btn-sm danger"
+                                        title="Xóa bình luận vi phạm">
+                                    <i class="fa-solid fa-trash"></i> Xóa BL
+                                </button>
+                            </form>
+
+                            <!-- Bỏ qua -->
+                            <form th:if="${r.status.name() == 'PENDING'}"
+                                  th:action="@{/admin/reports/dismiss/{id}(id=${r.id})}"
+                                  method="post" style="display:inline;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <input type="hidden" name="status" th:value="${currentStatus}"/>
+                                <input type="hidden" name="page" th:value="${reports.number}"/>
+                                <button type="submit" class="btn-sm"
+                                        style="border-color:#ddd; color:#888;">
+                                    <i class="fa-solid fa-ban"></i> Bỏ qua
+                                </button>
+                            </form>
+
+                            <!-- Xóa báo cáo -->
+                            <form th:action="@{/admin/reports/delete/{id}(id=${r.id})}"
+                                  method="post" style="display:inline;"
+                                  onsubmit="return confirm('Xóa báo cáo này khỏi hệ thống?')">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <input type="hidden" name="status" th:value="${currentStatus}"/>
+                                <input type="hidden" name="page" th:value="${reports.number}"/>
+                                <button type="submit" class="btn-sm"
+                                        style="border-color:#ddd; color:#aaa; font-size:11px;">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${reports.totalPages > 1}" class="pagination" style="margin-top:1.25rem;">
+            <a th:if="${!reports.first}"
+               th:href="@{/admin/reports(status=${currentStatus}, page=${reports.number - 1})}"
+               class="btn-page"><i class="fa-solid fa-chevron-left"></i></a>
+
+            <th:block th:each="i : ${#numbers.sequence(0, reports.totalPages - 1)}">
+                <a th:href="@{/admin/reports(status=${currentStatus}, page=${i})}"
+                   th:text="${i + 1}"
+                   th:class="${i == reports.number} ? 'btn-page active' : 'btn-page'"></a>
+            </th:block>
+
+            <a th:if="${!reports.last}"
+               th:href="@{/admin/reports(status=${currentStatus}, page=${reports.number + 1})}"
+               class="btn-page"><i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+
+    </main>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

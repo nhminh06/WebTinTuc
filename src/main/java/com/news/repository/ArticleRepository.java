@@ -38,9 +38,11 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     @Transactional
     @Query("UPDATE Article a SET a.viewCount = a.viewCount + 1 WHERE a.id = :id")
     void incrementViewCount(@Param("id") Long id);
-
+    @Query("SELECT COALESCE(SUM(a.viewCount), 0) FROM Article a")
+    long sumAllViews();
     List<Article> findTop4ByCategoryAndStatusAndIdNotOrderByCreatedAtDesc(
             String category, ArticleStatus status, Long id);
+
 
 
 }

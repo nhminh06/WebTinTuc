@@ -685,3 +685,15 @@ textarea.form-control { resize: vertical; }
 
 .comment-delete { color: #888; font-size: 0.85rem; text-decoration: none; }
 .comment-delete:hover { color: #e74c3c; }
+.comment-report { color: #888; font-size: 0.85rem; }
+.comment-report:hover { color: #e67e22; }
+.comment-report {
+    color: #888;
+    font-size: 0.85rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+}
+.comment-report:hover { color: #e67e22; }

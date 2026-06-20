@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +37,9 @@ public class ArticleService {
         return articleRepository.findTop10ByStatusOrderByCreatedAtDesc(ArticleStatus.PUBLISHED);
     }
 
+    public long sumAllViews() {
+        return articleRepository.sumAllViews();
+    }
     public Optional<Article> getArticleById(Long id) {
         return articleRepository.findById(id);
     }

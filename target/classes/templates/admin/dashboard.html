@@ -34,7 +34,7 @@
                     <i class="fa-solid fa-users" style="color:#1565c0"></i>
                 </div>
                 <div>
-                    <span class="stat-number">—</span>
+                    <span class="stat-number" th:text="${totalUsers}">0</span>
                     <span class="stat-label">Người dùng</span>
                 </div>
             </div>
@@ -43,8 +43,8 @@
                     <i class="fa-solid fa-eye" style="color:#2e7d32"></i>
                 </div>
                 <div>
-                    <span class="stat-number">—</span>
-                    <span class="stat-label">Lượt xem</span>
+                    <span class="stat-number" th:text="${totalViews}">0</span>
+                    <span class="stat-label">Tổng lượt xem</span>
                 </div>
             </div>
             <div class="stat-card">
@@ -52,8 +52,8 @@
                     <i class="fa-solid fa-flag" style="color:#f57f17"></i>
                 </div>
                 <div>
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Báo cáo</span>
+                    <span class="stat-number" th:text="${totalPendingReports}">0</span>
+                    <span class="stat-label">Báo cáo chờ xử lý</span>
                 </div>
             </div>
         </div>

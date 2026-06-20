@@ -3,6 +3,9 @@ package com.news.service;
 import com.news.model.User;
 import com.news.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,7 +48,28 @@ public class UserService implements UserDetailsService {
         user.setRole("USER");
         return userRepository.save(user);
     }
+    public Page<User> searchUsers(String keyword, int page, int size) {
+        PageRequest pr = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        if (keyword == null || keyword.isBlank()) {
+            return userRepository.findAll(pr);
+        }
+        return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword, keyword, pr);
+    }
 
+    public long countAll() {
+        return userRepository.count();
+    }
+
+    public long countByEnabled(boolean enabled) {
+        return userRepository.countByEnabled(enabled);
+    }
+
+    public void changeRole(Long id, String role) {
+        userRepository.findById(id).ifPresent(u -> {
+            u.setRole(role);
+            userRepository.save(u);
+        });
+    }
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }

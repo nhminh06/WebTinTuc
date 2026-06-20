@@ -4,6 +4,7 @@ import com.news.model.Comment;
 import com.news.model.CommentLike;
 import com.news.repository.CommentLikeRepository;
 import com.news.service.CommentService;
+import com.news.service.ReportService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,9 @@ import java.util.Optional;
 @RequestMapping("/comment")
 public class CommentController {
 
-    @Autowired
-    private CommentService commentService;
-
-    @Autowired
-    private CommentLikeRepository commentLikeRepository;
+    @Autowired private CommentService commentService;
+    @Autowired private CommentLikeRepository commentLikeRepository;
+    @Autowired private ReportService reportService;
 
     @PostMapping("/add/{articleId}")
     public String addComment(@PathVariable Long articleId,
@@ -81,16 +80,23 @@ public class CommentController {
         return "redirect:" + (referer != null ? referer : "/");
     }
 
-    @GetMapping("/report/{id}")
+    @PostMapping("/report/{id}")
     public String reportComment(@PathVariable Long id,
+                                @RequestParam(defaultValue = "Nội dung không phù hợp") String reason,
                                 @AuthenticationPrincipal UserDetails userDetails,
                                 RedirectAttributes redirectAttributes,
                                 HttpServletRequest request) {
-        if (userDetails == null) {
-            return "redirect:/login";
+        if (userDetails == null) return "redirect:/login";
+
+        String result = reportService.reportComment(id, userDetails.getUsername(), reason);
+        switch (result) {
+            case "duplicate" -> redirectAttributes.addFlashAttribute("commentError",
+                    "Bạn đã báo cáo bình luận này rồi.");
+            case "not_found" -> redirectAttributes.addFlashAttribute("commentError",
+                    "Không tìm thấy bình luận.");
+            default -> redirectAttributes.addFlashAttribute("commentSuccess",
+                    "Đã gửi báo cáo. Chúng tôi sẽ xem xét sớm.");
         }
-        // TODO: lưu báo cáo vào DB nếu cần
-        redirectAttributes.addFlashAttribute("commentError", "Đã gửi báo cáo bình luận.");
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/");
     }
