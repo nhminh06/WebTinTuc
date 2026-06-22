@@ -9,42 +9,7 @@
 <div class="user-layout">
 
     <!-- SIDEBAR -->
-    <aside class="user-sidebar">
-        <div class="user-sidebar-profile">
-            <div class="user-avatar">
-                <i class="fa-solid fa-circle-user"></i>
-            </div>
-            <div class="user-sidebar-name" th:text="${user.username}"></div>
-            <div class="user-sidebar-role">
-                <span th:class="${user.role == 'ADMIN'} ? 'badge published' : 'badge draft'"
-                      th:text="${user.role == 'ADMIN'} ? 'Quản trị viên' : 'Người dùng'"></span>
-            </div>
-        </div>
-        <nav class="user-nav">
-            <a href="/profile" class="user-nav-item active">
-                <i class="fa-solid fa-circle-user"></i> Trang cá nhân
-            </a>
-            <a href="/user/articles" class="user-nav-item">
-                <i class="fa-solid fa-newspaper"></i> Bài viết của tôi
-            </a>
-            <a href="/user/articles/new" class="user-nav-item">
-                <i class="fa-solid fa-pen-to-square"></i> Viết bài mới
-            </a>
-            <a href="/user/notifications" class="user-nav-item">
-                <i class="fa-solid fa-bell"></i> Thông báo
-                <span class="notif-badge">3</span>
-            </a>
-            <div class="user-nav-divider"></div>
-            <form th:action="@{/logout}" method="post" style="margin:0">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                <button type="submit" class="user-nav-item danger"
-                        style="width:100%; background:none; border:none; cursor:pointer; font:inherit; text-align:left">
-                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                </button>
-            </form>
-        </nav>
-    </aside>
-
+    <div th:replace="~{fragments/user-sidebar :: sidebar('profile')}"></div>
     <!-- MAIN -->
     <main class="user-main">
         <div class="user-topbar">

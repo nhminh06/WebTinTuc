@@ -3,6 +3,8 @@ package com.news.controller;
 import com.news.model.Article;
 import com.news.model.ArticleStatus;
 import com.news.service.ArticleService;
+import com.news.model.User;
+import com.news.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,18 +25,26 @@ public class UserArticleController {
     @Autowired
     private ArticleService articleService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping("/articles")
     public String myArticles(@AuthenticationPrincipal UserDetails userDetails,
                              @RequestParam(defaultValue = "0") int page,
                              Model model) {
+        User user = userService.findByUsername(userDetails.getUsername());
         Page<Article> articles = articleService.getArticlesByAuthor(userDetails.getUsername(), page, 10);
+        model.addAttribute("user", user);
         model.addAttribute("articles", articles);
         model.addAttribute("userPage", "articles");
         return "user/articles";
     }
 
     @GetMapping("/articles/new")
-    public String newArticleForm(Model model) {
+    public String newArticleForm(@AuthenticationPrincipal UserDetails userDetails,
+                                 Model model) {
+        User user = userService.findByUsername(userDetails.getUsername());
+        model.addAttribute("user", user);
         model.addAttribute("article", new Article());
         model.addAttribute("userPage", "new-article");
         return "user/article-form";
@@ -44,8 +54,12 @@ public class UserArticleController {
     public String saveArticle(@AuthenticationPrincipal UserDetails userDetails,
                               @Valid @ModelAttribute Article article,
                               BindingResult result,
+                              Model model,
                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            User user = userService.findByUsername(userDetails.getUsername());
+            model.addAttribute("user", user);
+            model.addAttribute("userPage", "new-article");
             return "user/article-form";
         }
         // Tự động set author = username đang đăng nhập
@@ -64,12 +78,16 @@ public class UserArticleController {
                                   @PathVariable Long id, Model model) {
         Optional<Article> article = articleService.getArticleById(id);
         if (article.isEmpty()) return "redirect:/user/articles";
+
         // Chỉ cho sửa bài của chính mình
         if (!article.get().getAuthor().equals(userDetails.getUsername())) {
             return "redirect:/user/articles";
         }
+
+        User user = userService.findByUsername(userDetails.getUsername());
+        model.addAttribute("user", user);
         model.addAttribute("article", article.get());
-        model.addAttribute("userPage", "articles");
+        model.addAttribute("userPage", "new-article");
         return "user/article-form";
     }
 

@@ -29,8 +29,13 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+    // Thêm vào class User, sau field createdAt
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
 
-    // getters/setters
+    // Getter/Setter
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getUsername() { return username; }

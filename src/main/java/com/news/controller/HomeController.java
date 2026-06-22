@@ -2,19 +2,23 @@ package com.news.controller;
 
 import com.news.model.Article;
 import com.news.model.Comment;
+import com.news.model.User;
 import com.news.repository.CommentLikeRepository;
 import com.news.service.ArticleService;
 import com.news.service.CommentService;
+import com.news.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import com.news.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 public class HomeController {
@@ -25,7 +29,8 @@ public class HomeController {
     private CommentLikeRepository commentLikeRepository;
     @Autowired
     private CommentService commentService;
-
+    @Autowired
+    private UserService userService;
     @GetMapping("/")
     public String home(Model model) {
         List<Article> latest = articleService.getLatestArticles();
@@ -108,7 +113,20 @@ public class HomeController {
         model.addAttribute("newComment", new Comment());
         model.addAttribute("likeCounts", likeCounts);
         model.addAttribute("likedByMe", likedByMe);
+        // Build map username -> avatarUrl cho các comment
+        List<String> usernames = comments.stream()
+                .map(Comment::getUsername)
+                .distinct()
+                .collect(Collectors.toList());
 
+        Map<String, String> commentAvatars = userService.findByUsernames(usernames)
+                .stream()
+                .collect(Collectors.toMap(
+                        User::getUsername,
+                        u -> u.getAvatarUrl() != null ? u.getAvatarUrl() : ""
+                ));
+
+        model.addAttribute("commentAvatars", commentAvatars);
         return "article";
     }
 

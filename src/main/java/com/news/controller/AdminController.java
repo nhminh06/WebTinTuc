@@ -2,9 +2,11 @@ package com.news.controller;
 
 import com.news.model.Article;
 import com.news.model.ArticleStatus;
+import com.news.model.Contact;
 import com.news.model.Report;
 import com.news.model.User;
 import com.news.service.ArticleService;
+import com.news.service.ContactService;
 import com.news.service.ReportService;
 import com.news.service.UserService;
 import jakarta.validation.Valid;
@@ -25,6 +27,7 @@ public class AdminController {
     @Autowired private ArticleService articleService;
     @Autowired private UserService userService;
     @Autowired private ReportService reportService;
+    @Autowired private ContactService contactService;
 
     @GetMapping
     public String dashboard(Model model) {
@@ -37,6 +40,43 @@ public class AdminController {
         model.addAttribute("adminPage", "dashboard");
         return "admin/dashboard";
     }
+
+    // ===== CONTACTS =====
+    @GetMapping("/contacts")
+    public String listContacts(@RequestParam(defaultValue = "PENDING") String status,
+                               @RequestParam(defaultValue = "0") int page,
+                               Model model) {
+        Contact.Status statusEnum = null;
+        try { statusEnum = Contact.Status.valueOf(status); } catch (Exception ignored) {}
+
+        model.addAttribute("contacts", contactService.getAll(statusEnum, page, 15));
+        model.addAttribute("currentStatus", status);
+        model.addAttribute("countPending", contactService.countPending());
+        model.addAttribute("adminPage", "contacts");
+        return "admin/contacts";
+    }
+
+    @PostMapping("/contacts/reply/{id}")
+    public String replyContact(@PathVariable Long id,
+                               @RequestParam String reply,
+                               @RequestParam(defaultValue = "PENDING") String status,
+                               @RequestParam(defaultValue = "0") int page,
+                               RedirectAttributes ra) {
+        contactService.reply(id, reply);
+        ra.addFlashAttribute("success", "Đã gửi phản hồi!");
+        return "redirect:/admin/contacts?status=" + status + "&page=" + page;
+    }
+
+    @PostMapping("/contacts/delete/{id}")
+    public String deleteContact(@PathVariable Long id,
+                                @RequestParam(defaultValue = "PENDING") String status,
+                                @RequestParam(defaultValue = "0") int page,
+                                RedirectAttributes ra) {
+        contactService.delete(id);
+        ra.addFlashAttribute("success", "Đã xóa tin nhắn!");
+        return "redirect:/admin/contacts?status=" + status + "&page=" + page;
+    }
+
     // ===== ARTICLES =====
     @GetMapping("/articles")
     public String listArticles(@RequestParam(defaultValue = "0") int page, Model model) {

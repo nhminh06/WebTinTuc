@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Liên hệ Admin')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: header}"></div>
+
+<div class="user-layout">
+    <div th:replace="~{fragments/user-sidebar :: sidebar('contact')}"></div>
+
+    <main class="user-main">
+        <div class="user-topbar">
+            <h2><i class="fa-solid fa-envelope"></i> Liên hệ Admin</h2>
+        </div>
+
+        <div class="flash-msg success" th:if="${success}" th:text="${success}"></div>
+        <div class="flash-msg error" th:if="${error}" th:text="${error}"></div>
+
+        <!-- FORM GỬI -->
+        <div class="admin-card" style="margin-bottom:1.5rem">
+            <div class="admin-card-header">
+                <span><i class="fa-solid fa-paper-plane"></i> Gửi tin nhắn mới</span>
+            </div>
+            <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1.2rem">
+                <form action="/user/contact/send" method="post"
+                      style="display:flex;flex-direction:column;gap:1.2rem">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Tiêu đề</label>
+                        <input type="text" class="form-control" name="subject"
+                               placeholder="Nhập tiêu đề tin nhắn..."/>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Nội dung</label>
+                        <textarea class="form-control" name="message" rows="5"
+                                  placeholder="Nhập nội dung tin nhắn..."></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fa-solid fa-paper-plane"></i> Gửi tin nhắn
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- LỊCH SỬ TIN NHẮN -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <span><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử tin nhắn</span>
+            </div>
+            <div th:if="${#lists.isEmpty(contacts)}" class="empty-msg" style="padding:2rem">
+                <i class="fa-solid fa-inbox" style="font-size:2rem;color:var(--text-muted);display:block;margin-bottom:0.5rem"></i>
+                Chưa có tin nhắn nào
+            </div>
+            <div th:each="c : ${contacts}"
+                 style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <strong th:text="${c.subject}" style="font-size:1rem"></strong>
+                    <span th:if="${c.status.name() == 'PENDING'}"
+                          class="badge draft">Chờ phản hồi</span>
+                    <span th:if="${c.status.name() == 'REPLIED'}"
+                          class="badge published">Đã phản hồi</span>
+                </div>
+                <p th:text="${c.message}"
+                   style="color:var(--text-muted);font-size:14px;margin-bottom:0.5rem;white-space:pre-wrap"></p>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:0.75rem">
+                    <i class="fa-solid fa-clock"></i>
+                    <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                </div>
+                <!-- REPLY -->
+                <div th:if="${c.reply != null}"
+                     style="background:var(--red-soft);border-left:3px solid var(--red);padding:0.85rem 1rem;border-radius:var(--radius-sm)">
+                    <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:0.4rem">
+                        <i class="fa-solid fa-reply"></i> Phản hồi từ Admin
+                        <span th:if="${c.repliedAt != null}"
+                              style="font-weight:400;color:var(--text-muted);margin-left:8px"
+                              th:text="${#temporals.format(c.repliedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+                    <p th:text="${c.reply}" style="font-size:14px;white-space:pre-wrap;margin:0"></p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

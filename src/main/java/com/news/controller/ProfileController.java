@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -24,6 +25,7 @@ public class ProfileController {
         model.addAttribute("user", user);
         return "user/profile";
     }
+
     @PostMapping("/profile/update")
     public String updateProfile(@AuthenticationPrincipal UserDetails userDetails,
                                 @RequestParam String username,
@@ -36,6 +38,28 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("success", "Cập nhật thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/profile";
+    }
+
+    @PostMapping("/profile/avatar")
+    public String uploadAvatar(@AuthenticationPrincipal UserDetails userDetails,
+                               @RequestParam("avatar") MultipartFile file,
+                               RedirectAttributes ra) {
+        try {
+            if (file.isEmpty()) {
+                ra.addFlashAttribute("error", "Vui lòng chọn ảnh!");
+                return "redirect:/profile";
+            }
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                ra.addFlashAttribute("error", "Chỉ chấp nhận file ảnh!");
+                return "redirect:/profile";
+            }
+            userService.updateAvatar(userDetails.getUsername(), file);
+            ra.addFlashAttribute("success", "Cập nhật ảnh đại diện thành công!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());
         }
         return "redirect:/profile";
     }
