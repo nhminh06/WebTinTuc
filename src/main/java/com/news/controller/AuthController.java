@@ -1,4 +1,4 @@
-// src/main/java/com/news/controller/AuthController.java
+
 package com.news.controller;
 
 import com.news.service.UserService;

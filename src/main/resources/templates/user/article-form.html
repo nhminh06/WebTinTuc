@@ -54,17 +54,32 @@
                 </div>
                 <div class="form-group">
                     <label>Ảnh bìa</label>
-                    <div class="upload-area" id="coverArea">
-                        <input type="file" id="coverFile" accept="image/*" style="display:none"/>
-                        <input type="hidden" th:field="*{imageUrl}" id="coverUrl"/>
-                        <div id="coverPlaceholder" class="upload-placeholder">
-                            <span>Nhấn để chọn ảnh bìa</span>
+                    <input type="hidden" th:field="*{imageUrl}" id="coverUrl"/>
+                    <div class="upload-tabs">
+                        <button type="button" class="upload-tab active" id="tabFile" onclick="switchCoverTab('file')"><i class="fa-solid fa-upload"></i> Tải file</button>
+                        <button type="button" class="upload-tab" id="tabUrl" onclick="switchCoverTab('url')"><i class="fa-solid fa-link"></i> Dán URL</button>
+                    </div>
+                    <div id="coverFilePanel">
+                        <div class="upload-area" id="coverArea">
+                            <input type="file" id="coverFile" accept="image/*" style="display:none"/>
+                            <div id="coverPlaceholder" class="upload-placeholder">
+                                <span>Nhấn để chọn ảnh bìa</span>
+                            </div>
+                            <div id="coverPreview" class="upload-preview" style="display:none">
+                                <img id="coverImg" src="" alt="Ảnh bìa"/>
+                                <button type="button" class="btn-remove-img" onclick="removeCover()">✕ Xóa</button>
+                            </div>
+                            <div id="coverLoading" class="upload-loading" style="display:none">⏳ Đang tải lên...</div>
                         </div>
-                        <div id="coverPreview" class="upload-preview" style="display:none">
-                            <img id="coverImg" src="" alt="Ảnh bìa"/>
+                    </div>
+                    <div id="coverUrlPanel" style="display:none">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="text" id="coverUrlInput" class="form-control" placeholder="Dán URL ảnh vào đây..." oninput="onCoverUrlInput(this.value)"/>
+                        </div>
+                        <div id="coverUrlPreview" style="display:none;margin-top:10px;position:relative;">
+                            <img id="coverUrlImg" src="" alt="Ảnh bìa" style="max-height:280px;width:100%;object-fit:cover;border-radius:var(--radius-sm);"/>
                             <button type="button" class="btn-remove-img" onclick="removeCover()">✕ Xóa</button>
                         </div>
-                        <div id="coverLoading" class="upload-loading" style="display:none">⏳ Đang tải lên...</div>
                     </div>
                 </div>
             </div>
@@ -108,7 +123,11 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         const url = document.getElementById('coverUrl').value;
-        if (url) showCoverPreview(url);
+        if (url) {
+            showCoverPreview(url);
+            // Nếu là URL ngoài (không phải Cloudinary upload) thì ưu tiên tab URL
+            document.getElementById('coverUrlInput').value = url;
+        }
         const raw = document.getElementById('contentJson').value;
         if (raw) {
             try {
@@ -135,6 +154,24 @@
         });
     });
 
+    function switchCoverTab(tab) {
+        document.getElementById('tabFile').classList.toggle('active', tab === 'file');
+        document.getElementById('tabUrl').classList.toggle('active', tab === 'url');
+        document.getElementById('coverFilePanel').style.display = tab === 'file' ? '' : 'none';
+        document.getElementById('coverUrlPanel').style.display = tab === 'url' ? '' : 'none';
+    }
+
+    function onCoverUrlInput(val) {
+        const v = val.trim();
+        document.getElementById('coverUrl').value = v;
+        if (v) {
+            document.getElementById('coverUrlImg').src = v;
+            document.getElementById('coverUrlPreview').style.display = 'block';
+        } else {
+            document.getElementById('coverUrlPreview').style.display = 'none';
+        }
+    }
+
     function showCoverPreview(url) {
         document.getElementById('coverImg').src = url;
         document.getElementById('coverPlaceholder').style.display = 'none';
@@ -146,6 +183,8 @@
         document.getElementById('coverFile').value = '';
         document.getElementById('coverPreview').style.display = 'none';
         document.getElementById('coverPlaceholder').style.display = 'block';
+        document.getElementById('coverUrlInput').value = '';
+        document.getElementById('coverUrlPreview').style.display = 'none';
     }
     function setCoverLoading(on) {
         document.getElementById('coverLoading').style.display = on ? 'block' : 'none';
@@ -232,16 +271,30 @@
                <img src="${esc(b.imageUrl)}" alt=""/>
                <button type="button" class="btn-remove-img" onclick="clearBlockImg(${b.id})">✕ Xóa</button>
              </div>`
-                : `<div class="block-image-upload" onclick="document.getElementById('bf-${b.id}').click()">
+                : '';
+            const uploadArea = !b.imageUrl
+                ? `<div class="block-image-upload" onclick="document.getElementById('bf-${b.id}').click()">
                <i class="fa-solid fa-image"></i> Nhấn để chọn hình ảnh
-             </div>`;
+             </div>` : '';
             return `
           <input type="file" id="bf-${b.id}" accept="image/*" style="display:none"
             onchange="uploadBlockImg(${b.id},this)"/>
           <input type="text" class="block-heading-input"
             placeholder="Tiêu đề mục (tùy chọn)" value="${h}"
             oninput="set(${b.id},'heading',this.value)"/>
-          ${imgPart}
+          <div class="upload-tabs" style="margin-bottom:4px">
+            <button type="button" class="upload-tab ${!b._urlMode?'active':''}" onclick="setBlockImgMode(${b.id},false)"><i class="fa-solid fa-upload"></i> Tải file</button>
+            <button type="button" class="upload-tab ${b._urlMode?'active':''}" onclick="setBlockImgMode(${b.id},true)"><i class="fa-solid fa-link"></i> Dán URL</button>
+          </div>
+          <div id="bfpanel-${b.id}" style="display:${b._urlMode?'none':'block'}">
+            ${imgPart}${uploadArea}
+          </div>
+          <div id="bupanel-${b.id}" style="display:${b._urlMode?'block':'none'}">
+            <input type="text" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 13px;font-size:.95rem;font-family:inherit;"
+              placeholder="Dán URL ảnh..." value="${esc(b.imageUrl||'')}"
+              oninput="setBlockImgUrl(${b.id},this.value)"/>
+            ${b.imageUrl ? `<div style="margin-top:8px;position:relative;border-radius:var(--radius-sm);overflow:hidden"><img src="${esc(b.imageUrl)}" style="width:100%;max-height:220px;object-fit:cover"/><button type="button" class="btn-remove-img" onclick="clearBlockImg(${b.id})">✕ Xóa</button></div>` : ''}
+          </div>
           <div id="bl-${b.id}" class="block-loading" style="display:none">⏳ Đang tải lên...</div>
           <input type="text" class="block-caption-input"
             placeholder="Chú thích ảnh (tùy chọn)" value="${esc(b.caption||'')}"
@@ -271,6 +324,34 @@
     }
 
     function clearBlockImg(id) { set(id, 'imageUrl', ''); render(); }
+
+    function setBlockImgMode(id, urlMode) {
+        const b = blocks.find(x => x.id === id);
+        if (b) { b._urlMode = urlMode; render(); }
+    }
+
+    function setBlockImgUrl(id, val) {
+        const b = blocks.find(x => x.id === id);
+        if (!b) return;
+        b.imageUrl = val.trim();
+        // Cập nhật preview trực tiếp không cần re-render
+        const panel = document.getElementById(`bupanel-${id}`);
+        if (!panel) return;
+        let preview = panel.querySelector('.block-url-preview');
+        if (b.imageUrl) {
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.className = 'block-url-preview';
+                preview.style = 'margin-top:8px;position:relative;border-radius:var(--radius-sm);overflow:hidden';
+                preview.innerHTML = `<img src="${b.imageUrl}" style="width:100%;max-height:220px;object-fit:cover"/><button type="button" class="btn-remove-img" onclick="clearBlockImg(${id})">✕ Xóa</button>`;
+                panel.appendChild(preview);
+            } else {
+                preview.querySelector('img').src = b.imageUrl;
+            }
+        } else if (preview) {
+            preview.remove();
+        }
+    }
 
     function syncBlocks() {
         document.querySelectorAll('.block-item').forEach(el => {

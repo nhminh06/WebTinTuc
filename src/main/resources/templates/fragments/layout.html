@@ -5,6 +5,8 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${title} + ' - VietNews'">VietNews</title>
+    <!-- Áp dụng theme trước khi render để tránh flash -->
+    <script>if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
@@ -18,6 +20,9 @@
             <div class="header-top-inner">
                 <span class="date-display" id="currentDate"></span>
                 <div class="header-auth">
+                    <button id="themeToggle" onclick="toggleTheme()" class="auth-link-btn theme-toggle-btn" title="Chế độ sáng/tối" style="background:none;border:none;cursor:pointer;">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
                     <span sec:authorize="isAuthenticated()">
                         <span class="auth-username">
                             <i class="fa-solid fa-circle-user"></i>
@@ -174,6 +179,27 @@
     const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const el = document.getElementById('currentDate');
     if (el) el.textContent = d.toLocaleDateString('vi-VN', opts);
+
+    // Dark mode
+    (function() {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+    function toggleTheme() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        const btn = document.getElementById('themeToggle');
+        if (btn) btn.innerHTML = isDark
+            ? '<i class="fa-solid fa-moon"></i>'
+            : '<i class="fa-solid fa-sun"></i>';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        btn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    });
 </script>
 </body>
 </html>

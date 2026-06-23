@@ -92,7 +92,7 @@
                 (${article.status.name() == 'HIDDEN'} ? 'Ẩn' : 'Nháp')">
                         </a>
                     </td>
-                    <td th:text="${article.viewCount}">0</td>
+                    <td th:text="${article.createdAt != null} ? ${#temporals.format(article.createdAt, 'dd/MM/yyyy')} : '—'">Ngày</td>
                     <td>
                         <div class="action-btns">
                             <a th:href="@{/article/{id}(id=${article.id})}"
