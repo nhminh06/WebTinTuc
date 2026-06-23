@@ -59,7 +59,10 @@
                             <p th:text="${article.summary}">Tóm tắt</p>
                             <div class="article-meta">
                                 <span th:text="${article.author}">Tác giả</span>
-                                <span>👁 <span th:text="${article.viewCount}">0</span></span>
+                                <span>
+                                    <i class="fa-regular fa-eye"></i>
+                                    <span th:text="${article.viewCount}">0</span>
+                                </span>
                             </div>
                         </div>
                     </a>
@@ -72,7 +75,10 @@
                     <ol class="popular-list">
                         <li th:each="article : ${popularArticles}">
                             <a th:href="@{/article/{id}(id=${article.id})}" th:text="${article.title}">Tiêu đề</a>
-                            <span class="view-count">👁 <span th:text="${article.viewCount}">0</span></span>
+                            <span class="view-count">
+                                <i class="fa-regular fa-eye"></i>
+                                <span th:text="${article.viewCount}">0</span>
+                            </span>
                         </li>
                     </ol>
                 </div>
@@ -80,11 +86,21 @@
                 <div class="sidebar-widget">
                     <h3 class="widget-title">Chuyên mục</h3>
                     <div class="category-tags">
-                        <a href="/category/Công nghệ" class="tag">💻 Công nghệ</a>
-                        <a href="/category/Thể thao" class="tag">⚽ Thể thao</a>
-                        <a href="/category/Kinh tế" class="tag">📈 Kinh tế</a>
-                        <a href="/category/Giải trí" class="tag">🎬 Giải trí</a>
-                        <a href="/category/Xã hội" class="tag">🏙 Xã hội</a>
+                        <a href="/category/Công nghệ" class="tag">
+                            <i class="fa-solid fa-microchip"></i> Công nghệ
+                        </a>
+                        <a href="/category/Thể thao" class="tag">
+                            <i class="fa-solid fa-futbol"></i> Thể thao
+                        </a>
+                        <a href="/category/Kinh tế" class="tag">
+                            <i class="fa-solid fa-chart-line"></i> Kinh tế
+                        </a>
+                        <a href="/category/Giải trí" class="tag">
+                            <i class="fa-solid fa-film"></i> Giải trí
+                        </a>
+                        <a href="/category/Xã hội" class="tag">
+                            <i class="fa-solid fa-city"></i> Xã hội
+                        </a>
                     </div>
                 </div>
             </aside>

@@ -73,9 +73,31 @@
                     <div class="upload-area" id="coverArea">
                         <input type="file" id="coverFile" accept="image/*" style="display:none"/>
                         <input type="hidden" th:field="*{imageUrl}" id="coverUrl"/>
-                        <div id="coverPlaceholder" class="upload-placeholder">
-                            <span>Nhấn để chọn ảnh bìa</span>
+
+                        <div class="upload-tabs">
+                            <button type="button" class="upload-tab active" onclick="switchCoverTab('file',this)">
+                                <i class="fa-solid fa-upload"></i> Tải lên
+                            </button>
+                            <button type="button" class="upload-tab" onclick="switchCoverTab('url',this)">
+                                <i class="fa-solid fa-link"></i> URL web
+                            </button>
                         </div>
+
+                        <div id="coverTabFile">
+                            <div id="coverPlaceholder" class="upload-placeholder">
+                                <span>Nhấn để chọn ảnh bìa</span>
+                            </div>
+                        </div>
+                        <div id="coverTabUrl" style="display:none; padding: 8px 0;">
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="coverUrlInput" class="form-control"
+                                       placeholder="https://example.com/image.jpg" style="flex:1"/>
+                                <button type="button" class="btn-secondary" onclick="applyCoverUrl()">
+                                    <i class="fa-solid fa-check"></i> Áp dụng
+                                </button>
+                            </div>
+                        </div>
+
                         <div id="coverPreview" class="upload-preview" style="display:none">
                             <img id="coverImg" src="" alt="Ảnh bìa"/>
                             <button type="button" class="btn-remove-img" onclick="removeCover()">✕ Xóa</button>
@@ -143,7 +165,8 @@
             render();
         }
         document.getElementById('coverArea').addEventListener('click', e => {
-            if (!e.target.classList.contains('btn-remove-img'))
+            const inFileTab = document.getElementById('coverTabFile').contains(e.target);
+            if (inFileTab && !e.target.classList.contains('btn-remove-img'))
                 document.getElementById('coverFile').click();
         });
         document.getElementById('coverFile').addEventListener('change', async function () {
@@ -158,6 +181,20 @@
         });
     });
 
+    /* ===== COVER TABS ===== */
+    function switchCoverTab(tab, btn) {
+        document.querySelectorAll('.upload-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('coverTabFile').style.display = tab === 'file' ? '' : 'none';
+        document.getElementById('coverTabUrl').style.display  = tab === 'url'  ? '' : 'none';
+    }
+    function applyCoverUrl() {
+        const val = document.getElementById('coverUrlInput').value.trim();
+        if (!val) return;
+        document.getElementById('coverUrl').value = val;
+        showCoverPreview(val);
+    }
+
     function showCoverPreview(url) {
         document.getElementById('coverImg').src = url;
         document.getElementById('coverPlaceholder').style.display = 'none';
@@ -167,6 +204,7 @@
         document.getElementById('coverUrl').value = '';
         document.getElementById('coverImg').src = '';
         document.getElementById('coverFile').value = '';
+        document.getElementById('coverUrlInput').value = '';
         document.getElementById('coverPreview').style.display = 'none';
         document.getElementById('coverPlaceholder').style.display = 'block';
     }
@@ -175,22 +213,24 @@
         document.getElementById('coverPlaceholder').style.display = on ? 'none' : 'block';
     }
 
-   async function upload(file) {
-    const fd = new FormData();
-    fd.append('file', file);
-    const token = document.querySelector('meta[name="_csrf"]')?.content;
-    const header = document.querySelector('meta[name="_csrf_header"]')?.content;
-    const headers = {};
-    if (token && header) headers[header] = token;
-    const res = await fetch('/api/upload', { method: 'POST', body: fd, headers });
-    if (!res.ok) throw new Error('Server lỗi ' + res.status);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    return data.url;
-}
+    /* ===== UPLOAD ===== */
+    async function upload(file) {
+        const fd = new FormData();
+        fd.append('file', file);
+        const token  = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const headers = {};
+        if (token && header) headers[header] = token;
+        const res = await fetch('/api/upload', { method: 'POST', body: fd, headers });
+        if (!res.ok) throw new Error('Server lỗi ' + res.status);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        return data.url;
+    }
 
+    /* ===== BLOCKS ===== */
     function addBlock(type) {
-        blocks.push({ id: Date.now(), type, heading: '', content: '', imageUrl: '', caption: '' });
+        blocks.push({ id: Date.now(), type, heading: '', content: '', imageUrl: '', caption: '', urlMode: false });
         render();
     }
     function removeBlock(id) {
@@ -199,13 +239,25 @@
     }
     function move(id, dir) {
         const i = blocks.findIndex(b => b.id === id);
-        if (dir === 'up' && i > 0) [blocks[i-1], blocks[i]] = [blocks[i], blocks[i-1]];
-        if (dir === 'down' && i < blocks.length - 1) [blocks[i], blocks[i+1]] = [blocks[i+1], blocks[i]];
+        if (dir === 'up'   && i > 0)              [blocks[i-1], blocks[i]] = [blocks[i], blocks[i-1]];
+        if (dir === 'down' && i < blocks.length-1) [blocks[i], blocks[i+1]] = [blocks[i+1], blocks[i]];
         render();
     }
     function set(id, field, val) {
         const b = blocks.find(b => b.id === id);
         if (b) b[field] = val;
+    }
+    function switchBlockImgTab(id, mode) {
+        set(id, 'urlMode', mode === 'url');
+        render();
+    }
+    function applyBlockUrl(id) {
+        const el = document.getElementById(`bu-${id}`);
+        if (!el) return;
+        const val = el.value.trim();
+        if (!val) return;
+        set(id, 'imageUrl', val);
+        render();
     }
 
     function render() {
@@ -220,8 +272,8 @@
         wrap.dataset.id = b.id;
         const labels = {
             heading: '<i class="fa-solid fa-heading"></i> Tiêu đề mục',
-            text: '<i class="fa-solid fa-align-left"></i> Nội dung văn bản',
-            image: '<i class="fa-solid fa-image"></i> Hình ảnh'
+            text:    '<i class="fa-solid fa-align-left"></i> Nội dung văn bản',
+            image:   '<i class="fa-solid fa-image"></i> Hình ảnh'
         };
         const last = blocks.length - 1;
         wrap.innerHTML = `
@@ -243,28 +295,48 @@
         <input type="text" class="block-heading-input"
           placeholder="Nhập tiêu đề mục..." value="${h}"
           oninput="set(${b.id},'heading',this.value)"/>`;
+
         if (b.type === 'text') return `
         <input type="text" class="block-heading-input"
           placeholder="Tiêu đề mục (tùy chọn)" value="${h}"
           oninput="set(${b.id},'heading',this.value)"/>
         <textarea rows="6" placeholder="Nội dung văn bản..."
           oninput="set(${b.id},'content',this.value)">${esc(b.content||'')}</textarea>`;
+
         if (b.type === 'image') {
-            const imgPart = b.imageUrl
+            const isUrl  = !!b.urlMode;
+            const tabFile = `<button type="button" class="upload-tab ${!isUrl?'active':''}"
+                onclick="switchBlockImgTab(${b.id},'file')"><i class="fa-solid fa-upload"></i> Tải lên</button>`;
+            const tabUrl  = `<button type="button" class="upload-tab ${isUrl?'active':''}"
+                onclick="switchBlockImgTab(${b.id},'url')"><i class="fa-solid fa-link"></i> URL web</button>`;
+
+            const uploadArea = b.imageUrl
                 ? `<div class="block-image-preview">
-               <img src="${esc(b.imageUrl)}" alt=""/>
-               <button type="button" class="btn-remove-img" onclick="clearBlockImg(${b.id})">✕ Xóa</button>
-             </div>`
-                : `<div class="block-image-upload" onclick="document.getElementById('bf-${b.id}').click()">
-               <i class="fa-solid fa-image"></i> Nhấn để chọn hình ảnh
-             </div>`;
+                     <img src="${esc(b.imageUrl)}" alt=""/>
+                     <button type="button" class="btn-remove-img" onclick="clearBlockImg(${b.id})">✕ Xóa</button>
+                   </div>`
+                : (!isUrl
+                    ? `<div class="block-image-upload" onclick="document.getElementById('bf-${b.id}').click()">
+                         <i class="fa-solid fa-image"></i> Nhấn để chọn hình ảnh
+                       </div>`
+                    : `<div style="display:flex;gap:8px;padding:4px 0;">
+                         <input type="text" id="bu-${b.id}" class="form-control"
+                           placeholder="https://example.com/image.jpg"
+                           value="${esc(b.imageUrl||'')}" style="flex:1"/>
+                         <button type="button" class="btn-secondary" onclick="applyBlockUrl(${b.id})">
+                           <i class="fa-solid fa-check"></i> Áp dụng
+                         </button>
+                       </div>`
+                  );
+
             return `
           <input type="file" id="bf-${b.id}" accept="image/*" style="display:none"
             onchange="uploadBlockImg(${b.id},this)"/>
           <input type="text" class="block-heading-input"
             placeholder="Tiêu đề mục (tùy chọn)" value="${h}"
             oninput="set(${b.id},'heading',this.value)"/>
-          ${imgPart}
+          <div class="upload-tabs">${tabFile}${tabUrl}</div>
+          ${uploadArea}
           <div id="bl-${b.id}" class="block-loading" style="display:none">⏳ Đang tải lên...</div>
           <input type="text" class="block-caption-input"
             placeholder="Chú thích ảnh (tùy chọn)" value="${esc(b.caption||'')}"
@@ -298,12 +370,12 @@
     function syncBlocks() {
         document.querySelectorAll('.block-item').forEach(el => {
             const id = parseInt(el.dataset.id);
-            const b = blocks.find(x => x.id === id);
+            const b  = blocks.find(x => x.id === id);
             if (!b || b._uploading) return;
-            const ta = el.querySelector('textarea');
+            const ta  = el.querySelector('textarea');
             if (ta) b.content = ta.value;
             const ins = el.querySelectorAll('input[type="text"]');
-            if (b.type === 'text' && ins[0]) b.heading = ins[0].value;
+            if (b.type === 'text'    && ins[0]) b.heading = ins[0].value;
             if (b.type === 'heading' && ins[0]) b.heading = ins[0].value;
             if (b.type === 'image') {
                 if (ins[0]) b.heading = ins[0].value;
